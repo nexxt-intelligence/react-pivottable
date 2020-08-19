@@ -69,6 +69,7 @@ function PivotTableUISmartWrapper() {
     <PivotTableUI
       data={tableData}
       dataB={tableDataB}
+      // cols={questionTitles}
       rows={questionTitles}
       onChange={s => setTableDataB(s)}
       {...tableData}

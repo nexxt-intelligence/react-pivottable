@@ -57,15 +57,14 @@ function makeRenderer() {
     render() {
       // console.log('Renderer props: ', this.props);
       const pivotData = new PivotData(this.props);
-      console.log('pivotData: ', pivotData);
+
       const colAttrs = pivotData.props.cols;
       const rowAttrs = pivotData.props.rows;
       const dataB = pivotData.props.dataB;
 
       const rowKeys = pivotData.props.rows;
-      const colKeys = pivotData.getColKeys();
-      const grandTotalAggregator = pivotData.getAggregator([], []);
-      console.log('Row Keyz: ', rowKeys);
+      const colKeys = pivotData.props.cols;
+      // const grandTotalAggregator = pivotData.getAggregator([], []);
 
       const getClickHandler =
         this.props.tableOptions && this.props.tableOptions.clickCallback
@@ -96,75 +95,32 @@ function makeRenderer() {
       return (
         <table className="pvtTable">
           <thead>
-            {colAttrs.map(function(c, j) {
-              return (
-                <tr key={`colAttr${j}`}>
-                  {j === 0 && rowAttrs.length !== 0 && (
-                    <th colSpan={rowAttrs.length} rowSpan={colAttrs.length} />
-                  )}
-                  <th className="pvtAxisLabel">{c}</th>
-                  {colKeys.map(function(colKey, i) {
-                    const x = spanSize(colKeys, i, j);
-                    if (x === -1) {
-                      return null;
-                    }
-                    return (
-                      <th
-                        className="pvtColLabel"
-                        key={`colKey${i}`}
-                        colSpan={x}
-                        rowSpan={
-                          j === colAttrs.length - 1 && rowAttrs.length !== 0
-                            ? 2
-                            : 1
-                        }
-                      >
-                        {colKey[j]}
-                      </th>
-                    );
-                  })}
-
-                  {j === 0 && (
-                    <th
-                      className="pvtTotalLabel"
-                      rowSpan={
-                        colAttrs.length + (rowAttrs.length === 0 ? 0 : 1)
-                      }
-                    >
-                      Totals
-                    </th>
-                  )}
-                </tr>
-              );
-            })}
-
-            {/* {rowAttrs.length !== 0 && (
-              <tr>
-                {rowAttrs.map(function(r, i) {
+            <tr>
+              <td></td>
+              {colAttrs.map(function(colAttr, j) {
+                const colEntry = dataB.find(record =>
+                  record[colAttr] ? record : null
+                )[colAttr];
+                console.log(colAttrs);
+                console.log(colEntry);
+                return colEntry.map(function(colEntryText, i) {
                   return (
-                    <th className="pvtAxisLabel" key={`rowAttr${i}`}>
-                      {r}
+                    <th className="pvtColLabel" key={`colKey${i}`}>
+                      {colEntryText}
                     </th>
                   );
-                })}
-                <th className="pvtTotalLabel">
-                  {colAttrs.length === 0 ? 'Totals' : null}
-                </th>
-              </tr>
-            )} */}
+                });
+              })}
+            </tr>
           </thead>
 
           <tbody>
             {rowKeys.map((rowKey, i) => {
-              console.log('Key:', rowKey);
               const rowEntry = dataB.find(record =>
                 record[rowKey] ? record : null
               )[rowKey];
 
-              console.log('Row Entry: ', rowEntry);
-
               return rowEntry.map(function(txt, j) {
-                console.log('Row Text: ', txt);
                 return (
                   <tr key={`rowKeyRow${i}`}>
                     <th key={`rowKeyLabel${i}-${j}`} className="pvtRowLabel">
@@ -201,7 +157,7 @@ function makeRenderer() {
               });
             })} */}
 
-            <tr>
+            {/* <tr>
               <th
                 className="pvtTotalLabel"
                 colSpan={rowAttrs.length + (colAttrs.length === 0 ? 0 : 1)}
@@ -234,7 +190,7 @@ function makeRenderer() {
               >
                 {grandTotalAggregator.format(grandTotalAggregator.value())}
               </td>
-            </tr>
+            </tr> */}
           </tbody>
         </table>
       );
