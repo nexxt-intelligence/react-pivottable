@@ -17,6 +17,7 @@
     "pivottable.css"
   ],
   "scripts": {
+    "build": "npm run clean && cp src/pivottable.css . && babel src --out-dir=. --source-maps --presets=env,react --plugins babel-plugin-add-module-exports",
     "start": "webpack-dev-server",
     "test:eslint": "eslint src/*.js* && echo 'eslint: \\033[0;32m'PASS'\\033[0m'",
     "test:eslint:fix": "eslint src/*.js* --fix",

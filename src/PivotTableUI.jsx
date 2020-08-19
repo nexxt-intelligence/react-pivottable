@@ -236,16 +236,20 @@ class PivotTableUI extends React.PureComponent {
       maxZIndex: 1000,
       openDropdown: false,
       attrValues: {},
+      attrValuesB: {},
       materializedInput: [],
+      materializedInputB: [],
     };
   }
 
   componentDidMount() {
     this.materializeInput(this.props.data);
+    this.materializeInputB(this.props.dataB);
   }
 
   componentDidUpdate() {
     this.materializeInput(this.props.data);
+    this.materializeInputB(this.props.dataB);
   }
 
   materializeInput(nextData) {
@@ -257,6 +261,7 @@ class PivotTableUI extends React.PureComponent {
       attrValues: {},
       materializedInput: [],
     };
+
     let recordsProcessed = 0;
     PivotData.forEachRecord(
       newState.data,
@@ -281,6 +286,46 @@ class PivotTableUI extends React.PureComponent {
         recordsProcessed++;
       }
     );
+
+    this.setState(newState);
+  }
+
+  materializeInputB(nextDataB) {
+    if (this.state.dataB === nextDataB) {
+      return;
+    }
+    console.log('nextDataB', nextDataB);
+    const newState = {
+      dataB: nextDataB,
+      attrValuesB: {},
+      materializedInputB: [],
+    };
+
+    let recordsProcessed = 0;
+    PivotData.forEachRecord(
+      newState.dataB,
+      this.props.derivedAttributes,
+      function(record) {
+        newState.materializedInputB.push(record);
+        for (const attr of Object.keys(record)) {
+          if (!(attr in newState.attrValuesB)) {
+            newState.attrValuesB[attr] = {};
+            if (recordsProcessed > 0) {
+              newState.attrValuesB[attr].null = recordsProcessed;
+            }
+          }
+        }
+        for (const attr in newState.attrValuesB) {
+          const value = attr in record ? record[attr] : 'null';
+          if (!(value in newState.attrValuesB[attr])) {
+            newState.attrValuesB[attr][value] = 0;
+          }
+          newState.attrValuesB[attr][value]++;
+        }
+        recordsProcessed++;
+      }
+    );
+    console.log('newState', newState);
     this.setState(newState);
   }
 
@@ -514,11 +559,13 @@ class PivotTableUI extends React.PureComponent {
       this.propUpdater('rows'),
       'pvtAxisContainer pvtVertList pvtRows'
     );
+    console.log(this.state.materializedInputB);
     const outputCell = (
       <td className="pvtOutput">
         <PivotTable
           {...update(this.props, {
             data: {$set: this.state.materializedInput},
+            dataB: {$set: this.state.materializedInputB},
           })}
         />
       </td>
@@ -529,11 +576,11 @@ class PivotTableUI extends React.PureComponent {
         <table className="pvtUi">
           <tbody onClick={() => this.setState({openDropdown: false})}>
             <tr>
-              {rendererCell}
+              <td></td>
               {unusedAttrsCell}
             </tr>
             <tr>
-              {aggregatorCell}
+              <td></td>
               {colAttrsCell}
             </tr>
             <tr>
@@ -549,8 +596,7 @@ class PivotTableUI extends React.PureComponent {
       <table className="pvtUi">
         <tbody onClick={() => this.setState({openDropdown: false})}>
           <tr>
-            {rendererCell}
-            {aggregatorCell}
+            <td></td>
             {colAttrsCell}
           </tr>
           <tr>

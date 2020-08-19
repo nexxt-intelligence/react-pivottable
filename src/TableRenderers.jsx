@@ -52,59 +52,20 @@ function redColorScaleGenerator(values) {
   };
 }
 
-function makeRenderer(opts = {}) {
+function makeRenderer() {
   class TableRenderer extends React.PureComponent {
     render() {
+      // console.log('Renderer props: ', this.props);
       const pivotData = new PivotData(this.props);
+      console.log('pivotData: ', pivotData);
       const colAttrs = pivotData.props.cols;
       const rowAttrs = pivotData.props.rows;
-      const rowKeys = pivotData.getRowKeys();
+      const dataB = pivotData.props.dataB;
+
+      const rowKeys = pivotData.props.rows;
       const colKeys = pivotData.getColKeys();
       const grandTotalAggregator = pivotData.getAggregator([], []);
-
-      let valueCellColors = () => {};
-      let rowTotalColors = () => {};
-      let colTotalColors = () => {};
-      if (opts.heatmapMode) {
-        const colorScaleGenerator = this.props.tableColorScaleGenerator;
-        const rowTotalValues = colKeys.map(x =>
-          pivotData.getAggregator([], x).value()
-        );
-        rowTotalColors = colorScaleGenerator(rowTotalValues);
-        const colTotalValues = rowKeys.map(x =>
-          pivotData.getAggregator(x, []).value()
-        );
-        colTotalColors = colorScaleGenerator(colTotalValues);
-
-        if (opts.heatmapMode === 'full') {
-          const allValues = [];
-          rowKeys.map(r =>
-            colKeys.map(c =>
-              allValues.push(pivotData.getAggregator(r, c).value())
-            )
-          );
-          const colorScale = colorScaleGenerator(allValues);
-          valueCellColors = (r, c, v) => colorScale(v);
-        } else if (opts.heatmapMode === 'row') {
-          const rowColorScales = {};
-          rowKeys.map(r => {
-            const rowValues = colKeys.map(x =>
-              pivotData.getAggregator(r, x).value()
-            );
-            rowColorScales[r] = colorScaleGenerator(rowValues);
-          });
-          valueCellColors = (r, c, v) => rowColorScales[r](v);
-        } else if (opts.heatmapMode === 'col') {
-          const colColorScales = {};
-          colKeys.map(c => {
-            const colValues = rowKeys.map(x =>
-              pivotData.getAggregator(x, c).value()
-            );
-            colColorScales[c] = colorScaleGenerator(colValues);
-          });
-          valueCellColors = (r, c, v) => colColorScales[c](v);
-        }
-      }
+      console.log('Row Keyz: ', rowKeys);
 
       const getClickHandler =
         this.props.tableOptions && this.props.tableOptions.clickCallback
@@ -177,7 +138,7 @@ function makeRenderer(opts = {}) {
               );
             })}
 
-            {rowAttrs.length !== 0 && (
+            {/* {rowAttrs.length !== 0 && (
               <tr>
                 {rowAttrs.map(function(r, i) {
                   return (
@@ -190,67 +151,55 @@ function makeRenderer(opts = {}) {
                   {colAttrs.length === 0 ? 'Totals' : null}
                 </th>
               </tr>
-            )}
+            )} */}
           </thead>
 
           <tbody>
-            {rowKeys.map(function(rowKey, i) {
-              const totalAggregator = pivotData.getAggregator(rowKey, []);
-              return (
-                <tr key={`rowKeyRow${i}`}>
-                  {rowKey.map(function(txt, j) {
-                    const x = spanSize(rowKeys, i, j);
-                    if (x === -1) {
-                      return null;
-                    }
-                    return (
-                      <th
-                        key={`rowKeyLabel${i}-${j}`}
-                        className="pvtRowLabel"
-                        rowSpan={x}
-                        colSpan={
-                          j === rowAttrs.length - 1 && colAttrs.length !== 0
-                            ? 2
-                            : 1
-                        }
-                      >
-                        {txt}
-                      </th>
-                    );
-                  })}
-                  {colKeys.map(function(colKey, j) {
-                    const aggregator = pivotData.getAggregator(rowKey, colKey);
-                    return (
-                      <td
-                        className="pvtVal"
-                        key={`pvtVal${i}-${j}`}
-                        onClick={
-                          getClickHandler &&
-                          getClickHandler(aggregator.value(), rowKey, colKey)
-                        }
-                        style={valueCellColors(
-                          rowKey,
-                          colKey,
-                          aggregator.value()
-                        )}
-                      >
-                        {aggregator.format(aggregator.value())}
-                      </td>
-                    );
-                  })}
-                  <td
-                    className="pvtTotal"
-                    onClick={
-                      getClickHandler &&
-                      getClickHandler(totalAggregator.value(), rowKey, [null])
-                    }
-                    style={colTotalColors(totalAggregator.value())}
-                  >
-                    {totalAggregator.format(totalAggregator.value())}
-                  </td>
-                </tr>
-              );
+            {rowKeys.map((rowKey, i) => {
+              console.log('Key:', rowKey);
+              const rowEntry = dataB.find(record =>
+                record[rowKey] ? record : null
+              )[rowKey];
+
+              console.log('Row Entry: ', rowEntry);
+
+              return rowEntry.map(function(txt, j) {
+                console.log('Row Text: ', txt);
+                return (
+                  <tr key={`rowKeyRow${i}`}>
+                    <th key={`rowKeyLabel${i}-${j}`} className="pvtRowLabel">
+                      {txt}
+                    </th>
+                  </tr>
+                );
+              });
             })}
+            {/* {rowKeys.map(function(rowKey, i) {
+              const totalAggregator = pivotData.getAggregator(rowKey, []);
+
+              return rowKey.map(function(txt, j) {
+                const x = spanSize(rowKeys, i, j);
+                if (x === -1) {
+                  return null;
+                }
+                return (
+                  <tr key={`rowKeyRow${i}`}>
+                    <th
+                      key={`rowKeyLabel${i}-${j}`}
+                      className="pvtRowLabel"
+                      rowSpan={x}
+                      colSpan={
+                        j === rowAttrs.length - 1 && colAttrs.length !== 0
+                          ? 2
+                          : 1
+                      }
+                    >
+                      {txt}
+                    </th>
+                  </tr>
+                );
+              });
+            })} */}
 
             <tr>
               <th
@@ -270,7 +219,6 @@ function makeRenderer(opts = {}) {
                       getClickHandler &&
                       getClickHandler(totalAggregator.value(), [null], colKey)
                     }
-                    style={rowTotalColors(totalAggregator.value())}
                   >
                     {totalAggregator.format(totalAggregator.value())}
                   </td>
@@ -302,53 +250,6 @@ function makeRenderer(opts = {}) {
   return TableRenderer;
 }
 
-class TSVExportRenderer extends React.PureComponent {
-  render() {
-    const pivotData = new PivotData(this.props);
-    const rowKeys = pivotData.getRowKeys();
-    const colKeys = pivotData.getColKeys();
-    if (rowKeys.length === 0) {
-      rowKeys.push([]);
-    }
-    if (colKeys.length === 0) {
-      colKeys.push([]);
-    }
-
-    const headerRow = pivotData.props.rows.map(r => r);
-    if (colKeys.length === 1 && colKeys[0].length === 0) {
-      headerRow.push(this.props.aggregatorName);
-    } else {
-      colKeys.map(c => headerRow.push(c.join('-')));
-    }
-
-    const result = rowKeys.map(r => {
-      const row = r.map(x => x);
-      colKeys.map(c => {
-        const v = pivotData.getAggregator(r, c).value();
-        row.push(v ? v : '');
-      });
-      return row;
-    });
-
-    result.unshift(headerRow);
-
-    return (
-      <textarea
-        value={result.map(r => r.join('\t')).join('\n')}
-        style={{width: window.innerWidth / 2, height: window.innerHeight / 2}}
-        readOnly={true}
-      />
-    );
-  }
-}
-
-TSVExportRenderer.defaultProps = PivotData.defaultProps;
-TSVExportRenderer.propTypes = PivotData.propTypes;
-
 export default {
   Table: makeRenderer(),
-  'Table Heatmap': makeRenderer({heatmapMode: 'full'}),
-  'Table Col Heatmap': makeRenderer({heatmapMode: 'col'}),
-  'Table Row Heatmap': makeRenderer({heatmapMode: 'row'}),
-  'Exportable TSV': TSVExportRenderer,
 };
