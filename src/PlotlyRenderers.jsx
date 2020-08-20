@@ -14,6 +14,7 @@ function makeRenderer(
   class Renderer extends React.PureComponent {
     render() {
       const pivotData = new PivotData(this.props);
+
       const rowKeys = pivotData.getRowKeys();
       const colKeys = pivotData.getColKeys();
       const traceKeys = transpose ? colKeys : rowKeys;

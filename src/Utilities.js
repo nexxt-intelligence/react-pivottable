@@ -564,8 +564,15 @@ class PivotData {
   }
 
   filter(record) {
+    console.log('filtering');
     for (const k in this.props.valueFilter) {
-      if (record[k] in this.props.valueFilter[k]) {
+      console.log('k: ', k);
+      console.log('record: ', record);
+      console.log('valFilter[k]: ', this.props.valueFilter[k]);
+      const obj = this.props.valueFilter[k];
+      console.log('valuefil[record]', obj[record]);
+      if (this.props.valueFilter[k][record]) {
+        console.log('retrun FALSE');
         return false;
       }
     }
@@ -784,6 +791,8 @@ PivotData.defaultProps = {
   aggregatorName: 'Count',
   sorters: {},
   valueFilter: {},
+  rowValueFilter: {},
+  colValueFilter: {},
   rowOrder: 'key_a_to_z',
   colOrder: 'key_a_to_z',
   derivedAttributes: {},
@@ -797,6 +806,8 @@ PivotData.propTypes = {
   rows: PropTypes.arrayOf(PropTypes.string),
   vals: PropTypes.arrayOf(PropTypes.string),
   valueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
+  rowValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
+  colValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
   sorters: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.objectOf(PropTypes.func),

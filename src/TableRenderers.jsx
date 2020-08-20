@@ -57,10 +57,57 @@ function makeRenderer() {
     render() {
       // console.log('Renderer props: ', this.props);
       const pivotData = new PivotData(this.props);
+      // pivotData.forEachRecord(
+      //   this.props.dataB,
+      //   this.props.derivedAttributes,
+      //   record => {
+      //     if (pivotData.filter(record)) {
+      //       this.processRecord(record);
+      //     }
+      //   }
+      // );
 
+      const rowFilters = pivotData.props.rowValueFilter;
+      const colFilters = pivotData.props.colValueFilter;
       const colAttrs = pivotData.props.cols;
       const rowAttrs = pivotData.props.rows;
-      const dataB = pivotData.props.dataB;
+      const colData = pivotData.props.dataB.map(dB => {
+        const dCopy = Object.assign({}, dB);
+        const key = Object.keys(dCopy)[0];
+        const options = Object.values(dCopy)[0].filter(option => {
+          for (const filterProp in colFilters) {
+            const filterValues = colFilters[filterProp];
+            if (filterValues[option]) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        dCopy[key] = options;
+        // console.log(dB);
+        return dCopy;
+      });
+
+      const rowData = pivotData.props.dataB.map(dB => {
+        const dCopy = Object.assign({}, dB);
+        const key = Object.keys(dCopy)[0];
+        const options = Object.values(dCopy)[0].filter(option => {
+          for (const filterProp in rowFilters) {
+            const filterValues = rowFilters[filterProp];
+            if (filterValues[option]) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        dCopy[key] = options;
+        // console.log(dB);
+        return dCopy;
+      });
+
+      console.log(colData, rowData);
 
       const rowKeys = pivotData.props.rows;
       const colKeys = pivotData.props.cols;
@@ -98,7 +145,7 @@ function makeRenderer() {
             <tr>
               <td></td>
               {colAttrs.map(function(colAttr, j) {
-                const colEntry = dataB.find(record =>
+                const colEntry = colData.find(record =>
                   record[colAttr] ? record : null
                 )[colAttr];
                 console.log(colAttrs);
@@ -116,7 +163,7 @@ function makeRenderer() {
 
           <tbody>
             {rowKeys.map((rowKey, i) => {
-              const rowEntry = dataB.find(record =>
+              const rowEntry = rowData.find(record =>
                 record[rowKey] ? record : null
               )[rowKey];
 

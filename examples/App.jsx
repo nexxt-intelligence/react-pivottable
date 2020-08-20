@@ -15,45 +15,9 @@ const Plot = createPlotlyComponent(window.Plotly);
 function PivotTableUISmartWrapper() {
   const [tableData, setTableData] = useState([]);
   const [tableDataB, setTableDataB] = useState(data);
+  const [filteredData, setFilteredData] = useState(data);
+
   const [questionTitles, setQuestionTitles] = useState([]);
-
-  // useEffect(async () => {
-  //   console.log(questions);
-  //   const tbData = [];
-  //   const titles = [];
-  //   const alternativeData = [];
-
-  //   // async function filterQ() {
-  //   //   questions
-  //   //     .filter(question => question.type === 'single_choice')
-  //   //     .forEach(question => {
-  //   //       const optionsTexts = [];
-  //   //       titles.push(question.title);
-
-  //   //       question.options.forEach((option, index) => {
-  //   //         const translatedText = option.texts.find(
-  //   //           text => text.language === 'en'
-  //   //         ).text;
-
-  //   //         optionsTexts.push(translatedText);
-
-  //   //         if (translatedText) {
-  //   //           if (tbData[index]) {
-  //   //             const tableObject = tbData[index];
-  //   //             tableObject[question.title] = translatedText;
-  //   //             tbData[index] = tableObject;
-  //   //           } else {
-  //   //             tbData.push({[question.title]: translatedText});
-  //   //           }
-  //   //         }
-  //   //       });
-
-  //   //       alternativeData.push({[question.title]: optionsTexts});
-  //   //       setQuestionTitles(titles);
-  //   //     });
-  //   // }
-
-  // }, [questions]);
 
   useEffect(() => {
     const titles = data.map(record => Object.keys(record)[0]);
@@ -61,18 +25,15 @@ function PivotTableUISmartWrapper() {
   }, []);
 
   useEffect(() => {
-    console.log('useeffect tabledataB');
     console.log(tableDataB);
   }, [tableDataB]);
 
   return (
     <PivotTableUI
-      data={tableData}
       dataB={tableDataB}
       // cols={questionTitles}
       rows={questionTitles}
       onChange={s => setTableDataB(s)}
-      {...tableData}
       {...tableDataB}
     />
   );
