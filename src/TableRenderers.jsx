@@ -55,17 +55,7 @@ function redColorScaleGenerator(values) {
 function makeRenderer() {
   class TableRenderer extends React.PureComponent {
     render() {
-      // console.log('Renderer props: ', this.props);
       const pivotData = new PivotData(this.props);
-      // pivotData.forEachRecord(
-      //   this.props.dataB,
-      //   this.props.derivedAttributes,
-      //   record => {
-      //     if (pivotData.filter(record)) {
-      //       this.processRecord(record);
-      //     }
-      //   }
-      // );
 
       const rowFilters = pivotData.props.rowValueFilter;
       const colFilters = pivotData.props.colValueFilter;
@@ -85,7 +75,6 @@ function makeRenderer() {
         });
 
         dCopy[key] = options;
-        // console.log(dB);
         return dCopy;
       });
 
@@ -103,11 +92,8 @@ function makeRenderer() {
         });
 
         dCopy[key] = options;
-        // console.log(dB);
         return dCopy;
       });
-
-      console.log(colData, rowData);
 
       const rowKeys = pivotData.props.rows;
       const colKeys = pivotData.props.cols;
@@ -148,8 +134,6 @@ function makeRenderer() {
                 const colEntry = colData.find(record =>
                   record[colAttr] ? record : null
                 )[colAttr];
-                console.log(colAttrs);
-                console.log(colEntry);
                 return colEntry.map(function(colEntryText, i) {
                   return (
                     <th className="pvtColLabel" key={`colKey${i}`}>
