@@ -8,14 +8,13 @@ import PivotTableUI from '../src/PivotTableUI';
 import '../src/pivottable.css';
 import Dropzone from 'react-dropzone';
 import Papa from 'papaparse';
-import {data} from './data';
+import {data, responses} from './data';
 
 const Plot = createPlotlyComponent(window.Plotly);
 
 function PivotTableUISmartWrapper() {
-  const [tableData, setTableData] = useState([]);
   const [tableDataB, setTableDataB] = useState(data);
-  const [filteredData, setFilteredData] = useState(data);
+  const [userResponses, setUserResponses] = useState(responses);
 
   const [questionTitles, setQuestionTitles] = useState([]);
 
@@ -25,7 +24,7 @@ function PivotTableUISmartWrapper() {
   }, []);
 
   useEffect(() => {
-    console.log(tableDataB);
+    // console.log(tableDataB);
   }, [tableDataB]);
 
   return (
@@ -33,6 +32,7 @@ function PivotTableUISmartWrapper() {
       dataB={tableDataB}
       // cols={questionTitles}
       rows={questionTitles}
+      userResponses={userResponses}
       onChange={s => setTableDataB(s)}
       {...tableDataB}
     />

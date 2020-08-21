@@ -19,7 +19,7 @@ export class DraggableAttribute extends React.Component {
     const filterProperty = this.props.valueFilter;
     if (
       this.props.name in filterProperty &&
-      value in filterProperty[this.props.name]
+      value.text in filterProperty[this.props.name]
     ) {
       this.props.removeValuesFromFilter(
         this.props.name,
@@ -32,7 +32,7 @@ export class DraggableAttribute extends React.Component {
   }
 
   matchesFilter(x) {
-    return x
+    return x.text
       .toLowerCase()
       .trim()
       .includes(this.state.filterText.toLowerCase().trim());
@@ -54,6 +54,12 @@ export class DraggableAttribute extends React.Component {
     const shown = values
       .filter(this.matchesFilter.bind(this))
       .sort(this.props.sorter);
+
+      const options = Object.values(this.props.attrValues)
+                          .filter(property => Array.isArray(property))
+                          .flatMap(property=> property);
+
+      console.log('obj values: ', options)
 
     return (
       <Draggable handle=".pvtDragHandle">
@@ -94,7 +100,7 @@ export class DraggableAttribute extends React.Component {
                 onClick={() => {
                   this.props.removeValuesFromFilter(
                     this.props.name,
-                    Object.values(this.props.attrValues)[0].filter(
+                   options.filter(
                       this.matchesFilter.bind(this)
                     ),
                     this.props.type
@@ -109,7 +115,7 @@ export class DraggableAttribute extends React.Component {
                 onClick={() =>
                   this.props.addValuesToFilter(
                     this.props.name,
-                    Object.values(this.props.attrValues)[0].filter(
+                    options.filter(
                       this.matchesFilter.bind(this)
                     ),
                     this.props.type
@@ -129,14 +135,14 @@ export class DraggableAttribute extends React.Component {
                   <p
                     key={x}
                     onClick={() => this.toggleValue(x)}
-                    className={filterName && filterName[x] ? '' : 'selected'}
+                    className={filterName && filterName[x.text] ? '' : 'selected'}
                   >
                     <a className="pvtOnly" onClick={e => this.selectOnly(e, x)}>
                       only
                     </a>
                     <a className="pvtOnlySpacer">&nbsp;</a>
 
-                    {x === '' ? <em>null</em> : x}
+                    {x.text === '' ? null : x.text}
                   </p>
                 );
               })}
@@ -230,7 +236,7 @@ export class Dropdown extends React.PureComponent {
                   (r === this.props.current ? 'pvtDropdownActiveValue' : '')
                 }
               >
-                {r}
+                {r.text}
               </div>
             ))}
           </div>
@@ -256,12 +262,10 @@ class PivotTableUI extends React.PureComponent {
   }
 
   componentDidMount() {
-    this.materializeInput(this.props.data);
     this.materializeInputB(this.props.dataB);
   }
 
   componentDidUpdate() {
-    this.materializeInput(this.props.data);
     this.materializeInputB(this.props.dataB);
   }
 
@@ -355,7 +359,7 @@ class PivotTableUI extends React.PureComponent {
       [filterFieldName]: {
         [attribute]: {
           $set: values.reduce((r, v) => {
-            r[v] = true;
+            r[v.text] = true;
             return r;
           }, {}),
         },
@@ -364,12 +368,13 @@ class PivotTableUI extends React.PureComponent {
   }
 
   addValuesToFilter(attribute, values, type) {
+    console.log(values)
     const filterFieldName = `${type}ValueFilter`;
     if (attribute in this.props[filterFieldName]) {
       this.sendPropUpdate({
         [filterFieldName]: {
           [attribute]: values.reduce((r, v) => {
-            r[v] = {$set: true};
+            r[v.text] = {$set: true};
             return r;
           }, {}),
         },
@@ -381,8 +386,9 @@ class PivotTableUI extends React.PureComponent {
 
   removeValuesFromFilter(attribute, values, type) {
     const filterFieldName = `${type}ValueFilter`;
+    const filterTexts = values.map(option => option.text);
     this.sendPropUpdate({
-      [filterFieldName]: {[attribute]: {$unset: values}},
+      [filterFieldName]: {[attribute]: {$unset: filterTexts}},
     });
   }
 
@@ -589,6 +595,7 @@ class PivotTableUI extends React.PureComponent {
             data: {$set: this.state.materializedInput},
             dataB: {$set: this.state.materializedInputB},
           })}
+          userResponses={this.props.userResponses}
         />
       </td>
     );

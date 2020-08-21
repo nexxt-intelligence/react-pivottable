@@ -2,60 +2,40 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {PivotData} from './Utilities';
 
-// helper function for setting row/col-span in pivotTableRenderer
-const spanSize = function(arr, i, j) {
-  let x;
-  if (i !== 0) {
-    let asc, end;
-    let noDraw = true;
-    for (
-      x = 0, end = j, asc = end >= 0;
-      asc ? x <= end : x >= end;
-      asc ? x++ : x--
-    ) {
-      if (arr[i - 1][x] !== arr[i][x]) {
-        noDraw = false;
-      }
-    }
-    if (noDraw) {
-      return -1;
-    }
-  }
-  let len = 0;
-  while (i + len < arr.length) {
-    let asc1, end1;
-    let stop = false;
-    for (
-      x = 0, end1 = j, asc1 = end1 >= 0;
-      asc1 ? x <= end1 : x >= end1;
-      asc1 ? x++ : x--
-    ) {
-      if (arr[i][x] !== arr[i + len][x]) {
-        stop = true;
-      }
-    }
-    if (stop) {
-      break;
-    }
-    len++;
-  }
-  return len;
-};
-
-function redColorScaleGenerator(values) {
-  const min = Math.min.apply(Math, values);
-  const max = Math.max.apply(Math, values);
-  return x => {
-    // eslint-disable-next-line no-magic-numbers
-    const nonRed = 255 - Math.round((255 * (x - min)) / (max - min));
-    return {backgroundColor: `rgb(255,${nonRed},${nonRed})`};
-  };
-}
-
 function makeRenderer() {
   class TableRenderer extends React.PureComponent {
+
+    calculateCell(rowEntry, rowId, colEntry, colAttr) {
+      const {userResponses} = this.props;
+      const colOptionId = colEntry.id;
+      const rowOptionId =rowId;
+      console.log(rowEntry, rowId)
+      colEntry[colAttr].forEach(entry => {
+        entry.baseScore=0;
+      entry.rowScore = 0;
+      })
+
+      userResponses.forEach(response => {
+            colEntry[colAttr].forEach(entry => {
+               if (response[colOptionId] === entry.value) {
+                  entry.baseScore++
+                  // response[rowOptionId] 
+
+                    if (response[rowOptionId] === rowEntry.value) {
+                      entry.rowScore++;
+                    }
+
+              }
+            })
+      });
+
+      return colEntry[colAttr].map(entry => <td>{`${Math.round((entry.rowScore / entry.baseScore)*100)}%`}</td>);
+    }
+
     render() {
       const pivotData = new PivotData(this.props);
+      // console.log(pivotData.props.dataB);
+  
 
       const rowFilters = pivotData.props.rowValueFilter;
       const colFilters = pivotData.props.colValueFilter;
@@ -67,7 +47,7 @@ function makeRenderer() {
         const options = Object.values(dCopy)[0].filter(option => {
           for (const filterProp in colFilters) {
             const filterValues = colFilters[filterProp];
-            if (filterValues[option]) {
+            if (filterValues[option.text]) {
               return false;
             }
           }
@@ -84,7 +64,7 @@ function makeRenderer() {
         const options = Object.values(dCopy)[0].filter(option => {
           for (const filterProp in rowFilters) {
             const filterValues = rowFilters[filterProp];
-            if (filterValues[option]) {
+            if (filterValues[option.text]) {
               return false;
             }
           }
@@ -97,7 +77,10 @@ function makeRenderer() {
 
       const rowKeys = pivotData.props.rows;
       const colKeys = pivotData.props.cols;
-      // const grandTotalAggregator = pivotData.getAggregator([], []);
+
+
+      const responses = pivotData.props.userResponses;
+      const grandTotalAggregator = pivotData.getAggregator([], []);
 
       const getClickHandler =
         this.props.tableOptions && this.props.tableOptions.clickCallback
@@ -131,13 +114,13 @@ function makeRenderer() {
             <tr>
               <td></td>
               {colAttrs.map(function(colAttr, j) {
-                const colEntry = colData.find(record =>
+                const colEntries = colData.find(record =>
                   record[colAttr] ? record : null
                 )[colAttr];
-                return colEntry.map(function(colEntryText, i) {
+                return colEntries.map(function(colEntry, i) {
                   return (
                     <th className="pvtColLabel" key={`colKey${i}`}>
-                      {colEntryText}
+                      {colEntry.text}
                     </th>
                   );
                 });
@@ -149,79 +132,25 @@ function makeRenderer() {
             {rowKeys.map((rowKey, i) => {
               const rowEntry = rowData.find(record =>
                 record[rowKey] ? record : null
-              )[rowKey];
+              );
+              
 
-              return rowEntry.map(function(txt, j) {
+              return rowEntry[rowKey].map((rowOption, j) => {
                 return (
                   <tr key={`rowKeyRow${i}`}>
                     <th key={`rowKeyLabel${i}-${j}`} className="pvtRowLabel">
-                      {txt}
+                      {rowOption.text}
                     </th>
+                    {colAttrs.map((colAttr, k) => {
+                      const colEntry = colData.find(record =>
+                        record[colAttr] ? record : null
+                      );
+                      return this.calculateCell(rowOption, rowEntry.id, colEntry, colAttr);
+                    })}
                   </tr>
                 );
               });
             })}
-            {/* {rowKeys.map(function(rowKey, i) {
-              const totalAggregator = pivotData.getAggregator(rowKey, []);
-
-              return rowKey.map(function(txt, j) {
-                const x = spanSize(rowKeys, i, j);
-                if (x === -1) {
-                  return null;
-                }
-                return (
-                  <tr key={`rowKeyRow${i}`}>
-                    <th
-                      key={`rowKeyLabel${i}-${j}`}
-                      className="pvtRowLabel"
-                      rowSpan={x}
-                      colSpan={
-                        j === rowAttrs.length - 1 && colAttrs.length !== 0
-                          ? 2
-                          : 1
-                      }
-                    >
-                      {txt}
-                    </th>
-                  </tr>
-                );
-              });
-            })} */}
-
-            {/* <tr>
-              <th
-                className="pvtTotalLabel"
-                colSpan={rowAttrs.length + (colAttrs.length === 0 ? 0 : 1)}
-              >
-                Totals
-              </th>
-
-              {colKeys.map(function(colKey, i) {
-                const totalAggregator = pivotData.getAggregator([], colKey);
-                return (
-                  <td
-                    className="pvtTotal"
-                    key={`total${i}`}
-                    onClick={
-                      getClickHandler &&
-                      getClickHandler(totalAggregator.value(), [null], colKey)
-                    }
-                  >
-                    {totalAggregator.format(totalAggregator.value())}
-                  </td>
-                );
-              })}
-
-              <td
-                onClick={
-                  getClickHandler &&
-                  getClickHandler(grandTotalAggregator.value(), [null], [null])
-                }
-                className="pvtGrandTotal"
-              >
-                {grandTotalAggregator.format(grandTotalAggregator.value())}
-              </td>
-            </tr> */}
           </tbody>
         </table>
       );
@@ -230,9 +159,7 @@ function makeRenderer() {
 
   TableRenderer.defaultProps = PivotData.defaultProps;
   TableRenderer.propTypes = PivotData.propTypes;
-  TableRenderer.defaultProps.tableColorScaleGenerator = redColorScaleGenerator;
   TableRenderer.defaultProps.tableOptions = {};
-  TableRenderer.propTypes.tableColorScaleGenerator = PropTypes.func;
   TableRenderer.propTypes.tableOptions = PropTypes.object;
   return TableRenderer;
 }
