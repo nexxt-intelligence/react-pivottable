@@ -87,12 +87,13 @@ function makeRenderer() {
 
       const stubKeys = pivotData.props.stubs;
       const headerKeys = pivotData.props.headers;
+      let currKey = '';
 
       return (
         <table className="pvtTable">
           <thead>
             <tr>
-              <td></td>
+              <td colSpan="2"></td>
               {headerKeys.map(headerAttr => {
                 const headerEntries = headerData.find(record =>
                   record[headerAttr] ? record : null
@@ -107,7 +108,7 @@ function makeRenderer() {
               })}
             </tr>
             <tr>
-              <th>Base</th>
+              <th colSpan="2">Base</th>
               {headerKeys.map(headerAttr => {
                 const headerFullEntry = headerData.find(record =>
                   record[headerAttr] ? record : null
@@ -132,12 +133,28 @@ function makeRenderer() {
               );
 
               return stubEntry[stubKey].map((stubOption, j) => {
+                let showStubLabel = true;
+
+                if (currKey !== stubKey) {
+                  currKey = stubKey;
+                } else {
+                  showStubLabel = false;
+                }
+
                 return (
                   <tr key={`stubKeyRow${i}`}>
+                    {showStubLabel && (
+                      <th
+                        key={`stubKeyLabel2${i}-${j}`}
+                        rowSpan={stubEntry[stubKey].length}
+                      >
+                        {stubKey}
+                      </th>
+                    )}
                     <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
                       {stubOption.text}
                     </th>
-                    {headerKeys.map((headerAttr, k) => {
+                    {headerKeys.map(headerAttr => {
                       const headerEntry = headerData.find(record =>
                         record[headerAttr] ? record : null
                       );
