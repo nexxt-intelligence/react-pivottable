@@ -375,12 +375,14 @@ const aggregatorTemplates = {
 
   fractionOf(wrapped, type = 'total', formatter = usFmtPct) {
     return (...x) =>
-      function(data, stubKey, colKey) {
+      function(data, stubKey, headerKey) {
         return {
-          selector: {total: [[], []], stub: [stubKey, []], col: [[], colKey]}[
-            type
-          ],
-          inner: wrapped(...Array.from(x || []))(data, stubKey, colKey),
+          selector: {
+            total: [[], []],
+            stub: [stubKey, []],
+            header: [[], headerKey],
+          }[type],
+          inner: wrapped(...Array.from(x || []))(data, stubKey, headerKey),
           push(record) {
             this.inner.push(record);
           },
@@ -436,10 +438,14 @@ const aggregators = (tpl => ({
   'Sum over Sum': tpl.sumOverSum(usFmt),
   'Sum as Fraction of Total': tpl.fractionOf(tpl.sum(), 'total', usFmtPct),
   'Sum as Fraction of Rows': tpl.fractionOf(tpl.sum(), 'stub', usFmtPct),
-  'Sum as Fraction of Columns': tpl.fractionOf(tpl.sum(), 'col', usFmtPct),
+  'Sum as Fraction of Columns': tpl.fractionOf(tpl.sum(), 'header', usFmtPct),
   'Count as Fraction of Total': tpl.fractionOf(tpl.count(), 'total', usFmtPct),
   'Count as Fraction of Rows': tpl.fractionOf(tpl.count(), 'stub', usFmtPct),
-  'Count as Fraction of Columns': tpl.fractionOf(tpl.count(), 'col', usFmtPct),
+  'Count as Fraction of Columns': tpl.fractionOf(
+    tpl.count(),
+    'header',
+    usFmtPct
+  ),
 }))(aggregatorTemplates);
 
 const locales = {
@@ -481,11 +487,11 @@ const dayNamesEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const zeroPad = number => `0${number}`.substr(-2, 2); // eslint-disable-line no-magic-numbers
 
 const derivers = {
-  bin(col, binWidth) {
-    return record => record[col] - (record[col] % binWidth);
+  bin(header, binWidth) {
+    return record => record[header] - (record[header] % binWidth);
   },
   dateFormat(
-    col,
+    header,
     formatString,
     utcOutput = false,
     mthNames = mthNamesEn,
@@ -493,7 +499,7 @@ const derivers = {
   ) {
     const utc = utcOutput ? 'UTC' : '';
     return function(record) {
-      const date = new Date(Date.parse(record[col]));
+      const date = new Date(Date.parse(record[header]));
       if (isNaN(date)) {
         return '';
       }
@@ -544,9 +550,9 @@ class PivotData {
     );
     this.tree = {};
     this.stubKeys = [];
-    this.colKeys = [];
+    this.headerKeys = [];
     this.stubTotals = {};
-    this.colTotals = {};
+    this.headerTotals = {};
     this.allTotal = this.aggregator(this, [], []);
     this.sorted = false;
 
@@ -627,22 +633,22 @@ class PivotData {
         default:
           this.stubKeys.sort(this.arrSort(this.props.stubs));
       }
-      switch (this.props.colOrder) {
+      switch (this.props.headerOrder) {
         case 'value_a_to_z':
-          this.colKeys.sort((a, b) => naturalSort(v([], a), v([], b)));
+          this.headerKeys.sort((a, b) => naturalSort(v([], a), v([], b)));
           break;
         case 'value_z_to_a':
-          this.colKeys.sort((a, b) => -naturalSort(v([], a), v([], b)));
+          this.headerKeys.sort((a, b) => -naturalSort(v([], a), v([], b)));
           break;
         default:
-          this.colKeys.sort(this.arrSort(this.props.cols));
+          this.headerKeys.sort(this.arrSort(this.props.headers));
       }
     }
   }
 
-  getColKeys() {
+  getheaderKeys() {
     this.sortKeys();
-    return this.colKeys;
+    return this.headerKeys;
   }
 
   getStubKeys() {
@@ -652,16 +658,16 @@ class PivotData {
 
   processRecord(record) {
     // this code is called in a tight loop
-    const colKey = [];
+    const headerKey = [];
     const stubKey = [];
-    for (const x of Array.from(this.props.cols)) {
-      colKey.push(x in record ? record[x] : 'null');
+    for (const x of Array.from(this.props.headers)) {
+      headerKey.push(x in record ? record[x] : 'null');
     }
     for (const x of Array.from(this.props.stubs)) {
       stubKey.push(x in record ? record[x] : 'null');
     }
     const flatStubKey = stubKey.join(String.fromCharCode(0));
-    const flatColKey = colKey.join(String.fromCharCode(0));
+    const flatheaderKey = headerKey.join(String.fromCharCode(0));
 
     this.allTotal.push(record);
 
@@ -673,41 +679,41 @@ class PivotData {
       this.stubTotals[flatStubKey].push(record);
     }
 
-    if (colKey.length !== 0) {
-      if (!this.colTotals[flatColKey]) {
-        this.colKeys.push(colKey);
-        this.colTotals[flatColKey] = this.aggregator(this, [], colKey);
+    if (headerKey.length !== 0) {
+      if (!this.headerTotals[flatheaderKey]) {
+        this.headerKeys.push(headerKey);
+        this.headerTotals[flatheaderKey] = this.aggregator(this, [], headerKey);
       }
-      this.colTotals[flatColKey].push(record);
+      this.headerTotals[flatheaderKey].push(record);
     }
 
-    if (colKey.length !== 0 && stubKey.length !== 0) {
+    if (headerKey.length !== 0 && stubKey.length !== 0) {
       if (!this.tree[flatStubKey]) {
         this.tree[flatStubKey] = {};
       }
-      if (!this.tree[flatStubKey][flatColKey]) {
-        this.tree[flatStubKey][flatColKey] = this.aggregator(
+      if (!this.tree[flatStubKey][flatheaderKey]) {
+        this.tree[flatStubKey][flatheaderKey] = this.aggregator(
           this,
           stubKey,
-          colKey
+          headerKey
         );
       }
-      this.tree[flatStubKey][flatColKey].push(record);
+      this.tree[flatStubKey][flatheaderKey].push(record);
     }
   }
 
-  getAggregator(stubKey, colKey) {
+  getAggregator(stubKey, headerKey) {
     let agg;
     const flatStubKey = stubKey.join(String.fromCharCode(0));
-    const flatColKey = colKey.join(String.fromCharCode(0));
-    if (stubKey.length === 0 && colKey.length === 0) {
+    const flatheaderKey = headerKey.join(String.fromCharCode(0));
+    if (stubKey.length === 0 && headerKey.length === 0) {
       agg = this.allTotal;
     } else if (stubKey.length === 0) {
-      agg = this.colTotals[flatColKey];
-    } else if (colKey.length === 0) {
+      agg = this.headerTotals[flatheaderKey];
+    } else if (headerKey.length === 0) {
       agg = this.stubTotals[flatStubKey];
     } else {
-      agg = this.tree[flatStubKey][flatColKey];
+      agg = this.tree[flatStubKey][flatheaderKey];
     }
     return (
       agg || {
@@ -776,16 +782,16 @@ PivotData.forEachRecord = function(input, derivedAttributes, f) {
 
 PivotData.defaultProps = {
   aggregators: aggregators,
-  cols: [],
+  headers: [],
   stubs: [],
   vals: [],
   aggregatorName: 'Count',
   sorters: {},
   valueFilter: {},
   stubValueFilter: {},
-  colValueFilter: {},
+  headerValueFilter: {},
   stubOrder: 'key_a_to_z',
-  colOrder: 'key_a_to_z',
+  headerOrder: 'key_a_to_z',
   derivedAttributes: {},
 };
 
@@ -793,19 +799,19 @@ PivotData.propTypes = {
   data: PropTypes.oneOfType([PropTypes.array, PropTypes.object, PropTypes.func])
     .isRequired,
   aggregatorName: PropTypes.string,
-  cols: PropTypes.arrayOf(PropTypes.string),
+  headers: PropTypes.arrayOf(PropTypes.string),
   stubs: PropTypes.arrayOf(PropTypes.string),
   vals: PropTypes.arrayOf(PropTypes.string),
   valueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
   stubValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
-  colValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
+  headerValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
   sorters: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.objectOf(PropTypes.func),
   ]),
   derivedAttributes: PropTypes.objectOf(PropTypes.func),
   stubOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
-  colOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
+  headerOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
 };
 
 export {

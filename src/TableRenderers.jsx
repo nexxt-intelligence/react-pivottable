@@ -4,18 +4,18 @@ import {PivotData} from './Utilities';
 
 function makeRenderer() {
   class TableRenderer extends React.PureComponent {
-    calculateCell(stubEntry, stubId, colEntry, colAttr) {
+    calculateCell(stubEntry, stubId, headerEntry, headerAttr) {
       const {userResponses} = this.props;
-      const colOptionId = colEntry.id;
+      const headerOptionId = headerEntry.id;
 
-      colEntry[colAttr].forEach(entry => {
+      headerEntry[headerAttr].forEach(entry => {
         entry.baseScore = 0;
         entry.stubScore = 0;
       });
 
       userResponses.forEach(response => {
-        colEntry[colAttr].forEach(entry => {
-          if (response[colOptionId] === entry.value) {
+        headerEntry[headerAttr].forEach(entry => {
+          if (response[headerOptionId] === entry.value) {
             entry.baseScore++;
 
             if (response[stubId] === stubEntry.value) {
@@ -25,7 +25,7 @@ function makeRenderer() {
         });
       });
 
-      return colEntry[colAttr].map(entry => {
+      return headerEntry[headerAttr].map(entry => {
         const score = Math.round((entry.stubScore / entry.baseScore) * 100);
 
         return <td>{`${score ? score : 0}%`}</td>;
@@ -36,14 +36,14 @@ function makeRenderer() {
       const pivotData = new PivotData(this.props);
 
       const stubFilters = pivotData.props.stubValueFilter;
-      const colFilters = pivotData.props.colValueFilter;
+      const headerFilters = pivotData.props.headerValueFilter;
 
-      const colData = pivotData.props.data.map(dB => {
+      const headerData = pivotData.props.data.map(dB => {
         const dCopy = Object.assign({}, dB);
         const key = Object.keys(dCopy)[0];
         const options = Object.values(dCopy)[0].filter(option => {
-          for (const filterProp in colFilters) {
-            const filterValues = colFilters[filterProp];
+          for (const filterProp in headerFilters) {
+            const filterValues = headerFilters[filterProp];
             if (filterValues[option.text]) {
               return false;
             }
@@ -73,21 +73,21 @@ function makeRenderer() {
       });
 
       const stubKeys = pivotData.props.stubs;
-      const colKeys = pivotData.props.cols;
+      const headerKeys = pivotData.props.headers;
 
       return (
         <table className="pvtTable">
           <thead>
             <tr>
               <td></td>
-              {colKeys.map(function(colAttr, j) {
-                const colEntries = colData.find(record =>
-                  record[colAttr] ? record : null
-                )[colAttr];
-                return colEntries.map(function(colEntry, i) {
+              {headerKeys.map(function(headerAttr, j) {
+                const headerEntries = headerData.find(record =>
+                  record[headerAttr] ? record : null
+                )[headerAttr];
+                return headerEntries.map(function(headerEntry, i) {
                   return (
-                    <th className="pvtColLabel" key={`colKey${i}`}>
-                      {colEntry.text}
+                    <th className="pvtColLabel" key={`headerKey${i}`}>
+                      {headerEntry.text}
                     </th>
                   );
                 });
@@ -107,15 +107,15 @@ function makeRenderer() {
                     <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
                       {stubOption.text}
                     </th>
-                    {colKeys.map((colAttr, k) => {
-                      const colEntry = colData.find(record =>
-                        record[colAttr] ? record : null
+                    {headerKeys.map((headerAttr, k) => {
+                      const headerEntry = headerData.find(record =>
+                        record[headerAttr] ? record : null
                       );
                       return this.calculateCell(
                         stubOption,
                         stubEntry.id,
-                        colEntry,
-                        colAttr
+                        headerEntry,
+                        headerAttr
                       );
                     })}
                   </tr>

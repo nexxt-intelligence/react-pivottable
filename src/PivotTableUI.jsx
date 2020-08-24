@@ -402,7 +402,9 @@ class PivotTableUI extends React.PureComponent {
 
   makeDnDCell(items, onChange, classes, type) {
     const filterType =
-      type === 'stub' ? this.props.stubValueFilter : this.props.colValueFilter;
+      type === 'stub'
+        ? this.props.stubValueFilter
+        : this.props.headerValueFilter;
     return (
       <Sortable
         options={{
@@ -502,12 +504,14 @@ class PivotTableUI extends React.PureComponent {
         </a>
         <a
           role="button"
-          className="pvtColOrder"
+          className="pvtheaderOrder"
           onClick={() =>
-            this.propUpdater('colOrder')(sortIcons[this.props.colOrder].next)
+            this.propUpdater('headerOrder')(
+              sortIcons[this.props.headerOrder].next
+            )
           }
         >
-          {sortIcons[this.props.colOrder].colSymbol}
+          {sortIcons[this.props.headerOrder].colSymbol}
         </a>
         {numValsAllowed > 0 && <br />}
         {new Array(numValsAllowed).fill().map((n, i) => [
@@ -540,7 +544,7 @@ class PivotTableUI extends React.PureComponent {
     const unusedAttrs = Object.keys(this.state.attrValuesB)
       .filter(
         e =>
-          !this.props.cols.includes(e) &&
+          !this.props.headers.includes(e) &&
           !this.props.hiddenAttributes.includes(e) &&
           !this.props.hiddenFromDragDrop.includes(e) &&
           e !== 'id'
@@ -559,17 +563,17 @@ class PivotTableUI extends React.PureComponent {
       'stub'
     );
 
-    const colAttrs = this.props.cols.filter(
+    const headerAttrs = this.props.headers.filter(
       e =>
         !this.props.hiddenAttributes.includes(e) &&
         !this.props.hiddenFromDragDrop.includes(e)
     );
 
-    const colAttrsCell = this.makeDnDCell(
-      colAttrs,
-      this.propUpdater('cols'),
+    const headerAttrsCell = this.makeDnDCell(
+      headerAttrs,
+      this.propUpdater('headers'),
       'pvtAxisContainer pvtHorizList pvtCols',
-      'col'
+      'header'
     );
 
     const stubAttrs = this.props.stubs.filter(
@@ -606,7 +610,7 @@ class PivotTableUI extends React.PureComponent {
             </tr>
             <tr>
               <td></td>
-              {colAttrsCell}
+              {headerAttrsCell}
             </tr>
             <tr>
               {stubAttrsCell}
@@ -622,7 +626,7 @@ class PivotTableUI extends React.PureComponent {
         <tbody onClick={() => this.setState({openDropdown: false})}>
           <tr>
             <td></td>
-            {colAttrsCell}
+            {headerAttrsCell}
           </tr>
           <tr>
             {unusedAttrsCell}
