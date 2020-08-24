@@ -32,6 +32,19 @@ function makeRenderer() {
       });
     }
 
+    getHeaderBase(headerEntry, headerId) {
+      const {userResponses} = this.props;
+      let total = 0;
+
+      userResponses.forEach(response => {
+        if (response[headerId] === headerEntry.value) {
+          total++;
+        }
+      });
+
+      return total;
+    }
+
     render() {
       const pivotData = new PivotData(this.props);
 
@@ -80,14 +93,31 @@ function makeRenderer() {
           <thead>
             <tr>
               <td></td>
-              {headerKeys.map(function(headerAttr, j) {
+              {headerKeys.map(headerAttr => {
                 const headerEntries = headerData.find(record =>
                   record[headerAttr] ? record : null
                 )[headerAttr];
-                return headerEntries.map(function(headerEntry, i) {
+                return headerEntries.map((headerEntry, i) => {
                   return (
                     <th className="pvtColLabel" key={`headerKey${i}`}>
                       {headerEntry.text}
+                    </th>
+                  );
+                });
+              })}
+            </tr>
+            <tr>
+              <th>Base</th>
+              {headerKeys.map(headerAttr => {
+                const headerFullEntry = headerData.find(record =>
+                  record[headerAttr] ? record : null
+                );
+                const headerOptions = headerFullEntry[headerAttr];
+
+                return headerOptions.map((headerOption, i) => {
+                  return (
+                    <th className="pvtColLabel" key={`headerKey${i}`}>
+                      {this.getHeaderBase(headerOption, headerFullEntry.id)}
                     </th>
                   );
                 });
