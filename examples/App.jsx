@@ -23,10 +23,6 @@ function PivotTableUISmartWrapper() {
     setQuestionTitles(titles);
   }, []);
 
-  useEffect(() => {
-    // console.log(tableDataB);
-  }, [tableDataB]);
-
   return (
     <PivotTableUI
       dataB={tableDataB}

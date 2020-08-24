@@ -4,38 +4,36 @@ import {PivotData} from './Utilities';
 
 function makeRenderer() {
   class TableRenderer extends React.PureComponent {
-
     calculateCell(rowEntry, rowId, colEntry, colAttr) {
       const {userResponses} = this.props;
       const colOptionId = colEntry.id;
-      const rowOptionId =rowId;
-      console.log(rowEntry, rowId)
+      const rowOptionId = rowId;
+
       colEntry[colAttr].forEach(entry => {
-        entry.baseScore=0;
-      entry.rowScore = 0;
-      })
-
-      userResponses.forEach(response => {
-            colEntry[colAttr].forEach(entry => {
-               if (response[colOptionId] === entry.value) {
-                  entry.baseScore++
-                  // response[rowOptionId] 
-
-                    if (response[rowOptionId] === rowEntry.value) {
-                      entry.rowScore++;
-                    }
-
-              }
-            })
+        entry.baseScore = 0;
+        entry.rowScore = 0;
       });
 
-      return colEntry[colAttr].map(entry => <td>{`${Math.round((entry.rowScore / entry.baseScore)*100)}%`}</td>);
+      userResponses.forEach(response => {
+        colEntry[colAttr].forEach(entry => {
+          if (response[colOptionId] === entry.value) {
+            entry.baseScore++;
+            // response[rowOptionId]
+
+            if (response[rowOptionId] === rowEntry.value) {
+              entry.rowScore++;
+            }
+          }
+        });
+      });
+
+      return colEntry[colAttr].map(entry => (
+        <td>{`${Math.round((entry.rowScore / entry.baseScore) * 100)}%`}</td>
+      ));
     }
 
     render() {
       const pivotData = new PivotData(this.props);
-      // console.log(pivotData.props.dataB);
-  
 
       const rowFilters = pivotData.props.rowValueFilter;
       const colFilters = pivotData.props.colValueFilter;
@@ -77,7 +75,6 @@ function makeRenderer() {
 
       const rowKeys = pivotData.props.rows;
       const colKeys = pivotData.props.cols;
-
 
       const responses = pivotData.props.userResponses;
       const grandTotalAggregator = pivotData.getAggregator([], []);
@@ -133,7 +130,6 @@ function makeRenderer() {
               const rowEntry = rowData.find(record =>
                 record[rowKey] ? record : null
               );
-              
 
               return rowEntry[rowKey].map((rowOption, j) => {
                 return (
@@ -145,7 +141,12 @@ function makeRenderer() {
                       const colEntry = colData.find(record =>
                         record[colAttr] ? record : null
                       );
-                      return this.calculateCell(rowOption, rowEntry.id, colEntry, colAttr);
+                      return this.calculateCell(
+                        rowOption,
+                        rowEntry.id,
+                        colEntry,
+                        colAttr
+                      );
                     })}
                   </tr>
                 );

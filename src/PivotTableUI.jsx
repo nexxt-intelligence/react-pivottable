@@ -55,11 +55,9 @@ export class DraggableAttribute extends React.Component {
       .filter(this.matchesFilter.bind(this))
       .sort(this.props.sorter);
 
-      const options = Object.values(this.props.attrValues)
-                          .filter(property => Array.isArray(property))
-                          .flatMap(property=> property);
-
-      console.log('obj values: ', options)
+    const options = Object.values(this.props.attrValues)
+      .filter(property => Array.isArray(property))
+      .flatMap(property => property);
 
     return (
       <Draggable handle=".pvtDragHandle">
@@ -100,9 +98,7 @@ export class DraggableAttribute extends React.Component {
                 onClick={() => {
                   this.props.removeValuesFromFilter(
                     this.props.name,
-                   options.filter(
-                      this.matchesFilter.bind(this)
-                    ),
+                    options.filter(this.matchesFilter.bind(this)),
                     this.props.type
                   );
                 }}
@@ -115,9 +111,7 @@ export class DraggableAttribute extends React.Component {
                 onClick={() =>
                   this.props.addValuesToFilter(
                     this.props.name,
-                    options.filter(
-                      this.matchesFilter.bind(this)
-                    ),
+                    options.filter(this.matchesFilter.bind(this)),
                     this.props.type
                   )
                 }
@@ -135,7 +129,9 @@ export class DraggableAttribute extends React.Component {
                   <p
                     key={x}
                     onClick={() => this.toggleValue(x)}
-                    className={filterName && filterName[x.text] ? '' : 'selected'}
+                    className={
+                      filterName && filterName[x.text] ? '' : 'selected'
+                    }
                   >
                     <a className="pvtOnly" onClick={e => this.selectOnly(e, x)}>
                       only
@@ -368,7 +364,6 @@ class PivotTableUI extends React.PureComponent {
   }
 
   addValuesToFilter(attribute, values, type) {
-    console.log(values)
     const filterFieldName = `${type}ValueFilter`;
     if (attribute in this.props[filterFieldName]) {
       this.sendPropUpdate({
@@ -547,7 +542,8 @@ class PivotTableUI extends React.PureComponent {
         e =>
           !this.props.cols.includes(e) &&
           !this.props.hiddenAttributes.includes(e) &&
-          !this.props.hiddenFromDragDrop.includes(e)
+          !this.props.hiddenFromDragDrop.includes(e) &&
+          e !== 'id'
       )
       .sort(sortAs(this.state.unusedOrder));
 

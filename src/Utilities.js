@@ -555,7 +555,6 @@ class PivotData {
       this.props.data,
       this.props.derivedAttributes,
       record => {
-        console.log('FILTERING');
         if (this.filter(record)) {
           this.processRecord(record);
         }
@@ -564,15 +563,10 @@ class PivotData {
   }
 
   filter(record) {
-    console.log('filtering');
     for (const k in this.props.valueFilter) {
-      console.log('k: ', k);
-      console.log('record: ', record);
-      console.log('valFilter[k]: ', this.props.valueFilter[k]);
       const obj = this.props.valueFilter[k];
-      console.log('valuefil[record]', obj[record]);
+
       if (this.props.valueFilter[k][record]) {
-        console.log('retrun FALSE');
         return false;
       }
     }
@@ -584,7 +578,6 @@ class PivotData {
       this.props.data,
       this.props.derivedAttributes,
       record => {
-        console.log('FILTERING2');
         if (!this.filter(record)) {
           return;
         }
@@ -667,7 +660,6 @@ class PivotData {
     for (const x of Array.from(this.props.rows)) {
       rowKey.push(x in record ? record[x] : 'null');
     }
-    console.log(colKey);
     const flatRowKey = rowKey.join(String.fromCharCode(0));
     const flatColKey = colKey.join(String.fromCharCode(0));
 
@@ -705,7 +697,6 @@ class PivotData {
   }
 
   getAggregator(rowKey, colKey) {
-    console.log(colKey);
     let agg;
     const flatRowKey = rowKey.join(String.fromCharCode(0));
     const flatColKey = colKey.join(String.fromCharCode(0));
