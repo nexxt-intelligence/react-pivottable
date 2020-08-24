@@ -4,42 +4,41 @@ import {PivotData} from './Utilities';
 
 function makeRenderer() {
   class TableRenderer extends React.PureComponent {
-    calculateCell(rowEntry, rowId, colEntry, colAttr) {
+    calculateCell(stubEntry, stubId, colEntry, colAttr) {
       const {userResponses} = this.props;
       const colOptionId = colEntry.id;
-      const rowOptionId = rowId;
 
       colEntry[colAttr].forEach(entry => {
         entry.baseScore = 0;
-        entry.rowScore = 0;
+        entry.stubScore = 0;
       });
 
       userResponses.forEach(response => {
         colEntry[colAttr].forEach(entry => {
           if (response[colOptionId] === entry.value) {
             entry.baseScore++;
-            // response[rowOptionId]
 
-            if (response[rowOptionId] === rowEntry.value) {
-              entry.rowScore++;
+            if (response[stubId] === stubEntry.value) {
+              entry.stubScore++;
             }
           }
         });
       });
 
-      return colEntry[colAttr].map(entry => (
-        <td>{`${Math.round((entry.rowScore / entry.baseScore) * 100)}%`}</td>
-      ));
+      return colEntry[colAttr].map(entry => {
+        const score = Math.round((entry.stubScore / entry.baseScore) * 100);
+
+        return <td>{`${score ? score : 0}%`}</td>;
+      });
     }
 
     render() {
       const pivotData = new PivotData(this.props);
 
-      const rowFilters = pivotData.props.rowValueFilter;
+      const stubFilters = pivotData.props.stubValueFilter;
       const colFilters = pivotData.props.colValueFilter;
-      const colAttrs = pivotData.props.cols;
-      const rowAttrs = pivotData.props.rows;
-      const colData = pivotData.props.dataB.map(dB => {
+
+      const colData = pivotData.props.data.map(dB => {
         const dCopy = Object.assign({}, dB);
         const key = Object.keys(dCopy)[0];
         const options = Object.values(dCopy)[0].filter(option => {
@@ -56,12 +55,12 @@ function makeRenderer() {
         return dCopy;
       });
 
-      const rowData = pivotData.props.dataB.map(dB => {
+      const stubData = pivotData.props.data.map(dB => {
         const dCopy = Object.assign({}, dB);
         const key = Object.keys(dCopy)[0];
         const options = Object.values(dCopy)[0].filter(option => {
-          for (const filterProp in rowFilters) {
-            const filterValues = rowFilters[filterProp];
+          for (const filterProp in stubFilters) {
+            const filterValues = stubFilters[filterProp];
             if (filterValues[option.text]) {
               return false;
             }
@@ -73,44 +72,15 @@ function makeRenderer() {
         return dCopy;
       });
 
-      const rowKeys = pivotData.props.rows;
+      const stubKeys = pivotData.props.stubs;
       const colKeys = pivotData.props.cols;
-
-      const responses = pivotData.props.userResponses;
-      const grandTotalAggregator = pivotData.getAggregator([], []);
-
-      const getClickHandler =
-        this.props.tableOptions && this.props.tableOptions.clickCallback
-          ? (value, rowValues, colValues) => {
-              const filters = {};
-              for (const i of Object.keys(colAttrs || {})) {
-                const attr = colAttrs[i];
-                if (colValues[i] !== null) {
-                  filters[attr] = colValues[i];
-                }
-              }
-              for (const i of Object.keys(rowAttrs || {})) {
-                const attr = rowAttrs[i];
-                if (rowValues[i] !== null) {
-                  filters[attr] = rowValues[i];
-                }
-              }
-              return e =>
-                this.props.tableOptions.clickCallback(
-                  e,
-                  value,
-                  filters,
-                  pivotData
-                );
-            }
-          : null;
 
       return (
         <table className="pvtTable">
           <thead>
             <tr>
               <td></td>
-              {colAttrs.map(function(colAttr, j) {
+              {colKeys.map(function(colAttr, j) {
                 const colEntries = colData.find(record =>
                   record[colAttr] ? record : null
                 )[colAttr];
@@ -126,24 +96,24 @@ function makeRenderer() {
           </thead>
 
           <tbody>
-            {rowKeys.map((rowKey, i) => {
-              const rowEntry = rowData.find(record =>
-                record[rowKey] ? record : null
+            {stubKeys.map((stubKey, i) => {
+              const stubEntry = stubData.find(record =>
+                record[stubKey] ? record : null
               );
 
-              return rowEntry[rowKey].map((rowOption, j) => {
+              return stubEntry[stubKey].map((stubOption, j) => {
                 return (
-                  <tr key={`rowKeyRow${i}`}>
-                    <th key={`rowKeyLabel${i}-${j}`} className="pvtRowLabel">
-                      {rowOption.text}
+                  <tr key={`stubKeyRow${i}`}>
+                    <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
+                      {stubOption.text}
                     </th>
-                    {colAttrs.map((colAttr, k) => {
+                    {colKeys.map((colAttr, k) => {
                       const colEntry = colData.find(record =>
                         record[colAttr] ? record : null
                       );
                       return this.calculateCell(
-                        rowOption,
-                        rowEntry.id,
+                        stubOption,
+                        stubEntry.id,
                         colEntry,
                         colAttr
                       );

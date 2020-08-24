@@ -13,7 +13,7 @@ import {data, responses} from './data';
 const Plot = createPlotlyComponent(window.Plotly);
 
 function PivotTableUISmartWrapper() {
-  const [tableDataB, setTableDataB] = useState(data);
+  const [tableData, setTableData] = useState(data);
   const [userResponses, setUserResponses] = useState(responses);
 
   const [questionTitles, setQuestionTitles] = useState([]);
@@ -25,12 +25,11 @@ function PivotTableUISmartWrapper() {
 
   return (
     <PivotTableUI
-      dataB={tableDataB}
-      // cols={questionTitles}
-      rows={questionTitles}
+      data={tableData}
+      stubs={questionTitles}
       userResponses={userResponses}
-      onChange={s => setTableDataB(s)}
-      {...tableDataB}
+      onChange={s => setTableData(s)}
+      {...tableData}
     />
   );
 }

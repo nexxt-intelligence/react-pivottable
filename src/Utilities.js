@@ -375,12 +375,12 @@ const aggregatorTemplates = {
 
   fractionOf(wrapped, type = 'total', formatter = usFmtPct) {
     return (...x) =>
-      function(data, rowKey, colKey) {
+      function(data, stubKey, colKey) {
         return {
-          selector: {total: [[], []], row: [rowKey, []], col: [[], colKey]}[
+          selector: {total: [[], []], stub: [stubKey, []], col: [[], colKey]}[
             type
           ],
-          inner: wrapped(...Array.from(x || []))(data, rowKey, colKey),
+          inner: wrapped(...Array.from(x || []))(data, stubKey, colKey),
           push(record) {
             this.inner.push(record);
           },
@@ -435,10 +435,10 @@ const aggregators = (tpl => ({
   Last: tpl.last(usFmt),
   'Sum over Sum': tpl.sumOverSum(usFmt),
   'Sum as Fraction of Total': tpl.fractionOf(tpl.sum(), 'total', usFmtPct),
-  'Sum as Fraction of Rows': tpl.fractionOf(tpl.sum(), 'row', usFmtPct),
+  'Sum as Fraction of Rows': tpl.fractionOf(tpl.sum(), 'stub', usFmtPct),
   'Sum as Fraction of Columns': tpl.fractionOf(tpl.sum(), 'col', usFmtPct),
   'Count as Fraction of Total': tpl.fractionOf(tpl.count(), 'total', usFmtPct),
-  'Count as Fraction of Rows': tpl.fractionOf(tpl.count(), 'row', usFmtPct),
+  'Count as Fraction of Rows': tpl.fractionOf(tpl.count(), 'stub', usFmtPct),
   'Count as Fraction of Columns': tpl.fractionOf(tpl.count(), 'col', usFmtPct),
 }))(aggregatorTemplates);
 
@@ -543,9 +543,9 @@ class PivotData {
       this.props.vals
     );
     this.tree = {};
-    this.rowKeys = [];
+    this.stubKeys = [];
     this.colKeys = [];
-    this.rowTotals = {};
+    this.stubTotals = {};
     this.colTotals = {};
     this.allTotal = this.aggregator(this, [], []);
     this.sorted = false;
@@ -617,15 +617,15 @@ class PivotData {
     if (!this.sorted) {
       this.sorted = true;
       const v = (r, c) => this.getAggregator(r, c).value();
-      switch (this.props.rowOrder) {
+      switch (this.props.stubOrder) {
         case 'value_a_to_z':
-          this.rowKeys.sort((a, b) => naturalSort(v(a, []), v(b, [])));
+          this.stubKeys.sort((a, b) => naturalSort(v(a, []), v(b, [])));
           break;
         case 'value_z_to_a':
-          this.rowKeys.sort((a, b) => -naturalSort(v(a, []), v(b, [])));
+          this.stubKeys.sort((a, b) => -naturalSort(v(a, []), v(b, [])));
           break;
         default:
-          this.rowKeys.sort(this.arrSort(this.props.rows));
+          this.stubKeys.sort(this.arrSort(this.props.stubs));
       }
       switch (this.props.colOrder) {
         case 'value_a_to_z':
@@ -645,32 +645,32 @@ class PivotData {
     return this.colKeys;
   }
 
-  getRowKeys() {
+  getStubKeys() {
     this.sortKeys();
-    return this.rowKeys;
+    return this.stubKeys;
   }
 
   processRecord(record) {
     // this code is called in a tight loop
     const colKey = [];
-    const rowKey = [];
+    const stubKey = [];
     for (const x of Array.from(this.props.cols)) {
       colKey.push(x in record ? record[x] : 'null');
     }
-    for (const x of Array.from(this.props.rows)) {
-      rowKey.push(x in record ? record[x] : 'null');
+    for (const x of Array.from(this.props.stubs)) {
+      stubKey.push(x in record ? record[x] : 'null');
     }
-    const flatRowKey = rowKey.join(String.fromCharCode(0));
+    const flatStubKey = stubKey.join(String.fromCharCode(0));
     const flatColKey = colKey.join(String.fromCharCode(0));
 
     this.allTotal.push(record);
 
-    if (rowKey.length !== 0) {
-      if (!this.rowTotals[flatRowKey]) {
-        this.rowKeys.push(rowKey);
-        this.rowTotals[flatRowKey] = this.aggregator(this, rowKey, []);
+    if (stubKey.length !== 0) {
+      if (!this.stubTotals[flatStubKey]) {
+        this.stubKeys.push(stubKey);
+        this.stubTotals[flatStubKey] = this.aggregator(this, stubKey, []);
       }
-      this.rowTotals[flatRowKey].push(record);
+      this.stubTotals[flatStubKey].push(record);
     }
 
     if (colKey.length !== 0) {
@@ -681,33 +681,33 @@ class PivotData {
       this.colTotals[flatColKey].push(record);
     }
 
-    if (colKey.length !== 0 && rowKey.length !== 0) {
-      if (!this.tree[flatRowKey]) {
-        this.tree[flatRowKey] = {};
+    if (colKey.length !== 0 && stubKey.length !== 0) {
+      if (!this.tree[flatStubKey]) {
+        this.tree[flatStubKey] = {};
       }
-      if (!this.tree[flatRowKey][flatColKey]) {
-        this.tree[flatRowKey][flatColKey] = this.aggregator(
+      if (!this.tree[flatStubKey][flatColKey]) {
+        this.tree[flatStubKey][flatColKey] = this.aggregator(
           this,
-          rowKey,
+          stubKey,
           colKey
         );
       }
-      this.tree[flatRowKey][flatColKey].push(record);
+      this.tree[flatStubKey][flatColKey].push(record);
     }
   }
 
-  getAggregator(rowKey, colKey) {
+  getAggregator(stubKey, colKey) {
     let agg;
-    const flatRowKey = rowKey.join(String.fromCharCode(0));
+    const flatStubKey = stubKey.join(String.fromCharCode(0));
     const flatColKey = colKey.join(String.fromCharCode(0));
-    if (rowKey.length === 0 && colKey.length === 0) {
+    if (stubKey.length === 0 && colKey.length === 0) {
       agg = this.allTotal;
-    } else if (rowKey.length === 0) {
+    } else if (stubKey.length === 0) {
       agg = this.colTotals[flatColKey];
     } else if (colKey.length === 0) {
-      agg = this.rowTotals[flatRowKey];
+      agg = this.stubTotals[flatStubKey];
     } else {
-      agg = this.tree[flatRowKey][flatColKey];
+      agg = this.tree[flatStubKey][flatColKey];
     }
     return (
       agg || {
@@ -777,14 +777,14 @@ PivotData.forEachRecord = function(input, derivedAttributes, f) {
 PivotData.defaultProps = {
   aggregators: aggregators,
   cols: [],
-  rows: [],
+  stubs: [],
   vals: [],
   aggregatorName: 'Count',
   sorters: {},
   valueFilter: {},
-  rowValueFilter: {},
+  stubValueFilter: {},
   colValueFilter: {},
-  rowOrder: 'key_a_to_z',
+  stubOrder: 'key_a_to_z',
   colOrder: 'key_a_to_z',
   derivedAttributes: {},
 };
@@ -794,17 +794,17 @@ PivotData.propTypes = {
     .isRequired,
   aggregatorName: PropTypes.string,
   cols: PropTypes.arrayOf(PropTypes.string),
-  rows: PropTypes.arrayOf(PropTypes.string),
+  stubs: PropTypes.arrayOf(PropTypes.string),
   vals: PropTypes.arrayOf(PropTypes.string),
   valueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
-  rowValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
+  stubValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
   colValueFilter: PropTypes.objectOf(PropTypes.objectOf(PropTypes.bool)),
   sorters: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.objectOf(PropTypes.func),
   ]),
   derivedAttributes: PropTypes.objectOf(PropTypes.func),
-  rowOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
+  stubOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
   colOrder: PropTypes.oneOf(['key_a_to_z', 'value_a_to_z', 'value_z_to_a']),
 };
 
