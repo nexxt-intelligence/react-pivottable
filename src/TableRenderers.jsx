@@ -3,59 +3,60 @@ import PropTypes from 'prop-types';
 import {PivotData} from './Utilities';
 
 function makeRenderer() {
-  class TableRenderer extends React.PureComponent {
-    constructor(props) {
-      super(props);
-      this.state = {
-        hasMissingValues: false,
-      };
-    }
-    calculateCell(
-      stubEntry,
-      stubId,
-      headerEntry,
-      headerAttr,
-      headerBaseScoreSums
-    ) {
+  class TableRenderer extends React.Component {
+    calculateCell(stubEntry, stubId, headerEntry, headerAttr) {
       const {userResponses} = this.props;
       const headerOptionId = headerEntry.id;
 
       headerEntry[headerAttr].forEach(entry => {
         entry.baseScore = 0;
         entry.stubScore = 0;
+
+        if (!entry.stubScores) {
+          entry.stubScores = {};
+        }
       });
 
       userResponses.forEach(response => {
         headerEntry[headerAttr].forEach(entry => {
+          if (!entry.stubScores[headerAttr]) {
+            entry.stubScores[headerAttr] = {};
+          }
+
           if (response[headerOptionId] === entry.value) {
             entry.baseScore++;
 
+            if (!entry.stubScores[headerAttr][stubId]) {
+              entry.stubScores[headerAttr][stubId] = 0;
+            }
+
             if (response[stubId] === stubEntry.value) {
               entry.stubScore++;
+              entry.stubScores[headerAttr][stubId] += 1;
             }
           }
         });
       });
 
-      return headerEntry[headerAttr].map((entry, i) => {
+      const cells = headerEntry[headerAttr].map(entry => {
         const score = Math.round((entry.stubScore / entry.baseScore) * 100);
-        headerBaseScoreSums[i] += entry.stubScore;
+
         return <td>{`${score ? score : 0}%`}</td>;
       });
+
+      return cells;
     }
 
-    calculateMissingValues(headerData, headerKeys, headerBaseScoreSums) {
+    calculateMissingValues(headerData, headerKeys, stubId) {
       const missingValues = headerKeys.flatMap(headerAttr => {
         const headerEntry = headerData.find(record =>
           record[headerAttr] ? record : null
         );
 
-        return headerEntry[headerAttr].map((entry, i) => {
-          const headerBaseScore = this.getHeaderBase(entry, headerEntry.id);
-
-          const missingValue = Math.round(
-            ((headerBaseScore - headerBaseScoreSums[i]) / headerBaseScore) * 100
-          );
+        return headerEntry[headerAttr].map(entry => {
+          const missingRaw =
+            entry.baseScore - entry.stubScores[headerAttr][stubId];
+          const missingValue = Math.round((missingRaw / entry.baseScore) * 100);
 
           return missingValue ? missingValue : 0;
         });
@@ -164,10 +165,31 @@ function makeRenderer() {
                 record[stubKey] ? record : null
               );
 
-              const headerBaseScoreSums = [0, 0, 0, 0];
               return stubEntry[stubKey].map((stubOption, j) => {
                 let showStubLabel = true;
-                let missingValues = [];
+
+                if (i === 0) {
+                  headerKeys.map(headerAttr => {
+                    const headerOptions = headerData.find(record =>
+                      record[headerAttr] ? record : null
+                    );
+
+                    if (headerOptions[headerAttr]) {
+                      headerOptions[headerAttr].forEach(headerOption => {
+                        if (headerOption.stubScores) {
+                          const objs = Object.values(
+                            headerOption.stubScores[headerAttr]
+                          );
+
+                          if (objs.length > 0) {
+                            headerOption.stubScores[headerAttr] = {};
+                          }
+                        }
+                      });
+                    }
+                  });
+                }
+
                 if (currKey !== stubKey) {
                   currKey = stubKey;
                 } else {
@@ -175,14 +197,6 @@ function makeRenderer() {
                 }
 
                 const qLabelRowSpan = stubEntry[stubKey].length;
-
-                if (j === stubEntry[stubKey].length - 1) {
-                  missingValues = this.calculateMissingValues(
-                    headerData,
-                    headerKeys,
-                    headerBaseScoreSums
-                  );
-                }
 
                 return (
                   <React.Fragment>
@@ -198,35 +212,44 @@ function makeRenderer() {
                       <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
                         {stubOption.text}
                       </th>
-                      {headerKeys.map((headerAttr, k) => {
+                      {headerKeys.map(headerAttr => {
                         const headerEntry = headerData.find(record =>
                           record[headerAttr] ? record : null
                         );
+
                         return this.calculateCell(
                           stubOption,
                           stubEntry.id,
                           headerEntry,
-                          headerAttr,
-                          headerBaseScoreSums
+                          headerAttr
                         );
                       })}
                     </tr>
-                    {j === stubEntry[stubKey].length - 1 &&
-                      this.calculateMissingValues(
+                    {[true].map(_ => {
+                      const missingValues = this.calculateMissingValues(
                         headerData,
                         headerKeys,
-                        headerBaseScoreSums
-                      ).filter(value => value > 0).length > 0 && (
-                        <tr>
-                          <td></td>
-                          <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                            Missing Values
-                          </th>
-                          {missingValues.map(missingValue => {
-                            return <td>{missingValue}%</td>;
-                          })}
-                        </tr>
-                      )}
+                        stubEntry.id
+                      );
+                      if (
+                        j === stubEntry[stubKey].length - 1 &&
+                        missingValues.filter(value => value > 0).length > 0
+                      ) {
+                        return (
+                          <tr>
+                            <td></td>
+                            <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                              Missing Values
+                            </th>
+                            {missingValues.map(missingValue => {
+                              return <td>{missingValue}%</td>;
+                            })}
+                          </tr>
+                        );
+                      }
+
+                      return null;
+                    })}
                   </React.Fragment>
                 );
               });
