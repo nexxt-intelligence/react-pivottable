@@ -43,6 +43,7 @@ function makeRenderer() {
 
         headerEntry[headerAttr].forEach(function (entry) {
           entry.baseScore = 0;
+          entry.stubScore = 0;
 
           if (!entry.stubScores) {
             entry.stubScores = {};
@@ -63,6 +64,7 @@ function makeRenderer() {
               }
 
               if (response[stubId] === stubEntry.value) {
+                entry.stubScore++;
                 entry.stubScores[headerAttr][stubId] += 1;
               }
             }
@@ -70,7 +72,7 @@ function makeRenderer() {
         });
 
         var cells = headerEntry[headerAttr].map(function (entry) {
-          var score = Math.round(entry.stubScores[headerAttr][stubId] / entry.baseScore * 100);
+          var score = Math.round(entry.stubScore / entry.baseScore * 100);
 
           return _react2.default.createElement(
             'td',
