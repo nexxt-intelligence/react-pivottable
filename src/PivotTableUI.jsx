@@ -258,7 +258,7 @@ class PivotTableUI extends React.PureComponent {
   }
 
   componentDidMount() {
-    this.materializeInputB(this.props.data);
+    this.materializeInputB(Array.isArray(this.props.data));
   }
 
   componentDidUpdate() {

@@ -1,20 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import tips from './tips';
 import {sortAs} from '../src/Utilities';
-import TableRenderers from '../src/TableRenderers';
-import createPlotlyComponent from 'react-plotly.js/factory';
-import createPlotlyRenderers from '../src/PlotlyRenderers';
 import PivotTableUI from '../src/PivotTableUI';
 import '../src/pivottable.css';
-import Dropzone from 'react-dropzone';
 import Papa from 'papaparse';
 import {data, responses} from './data';
 
-const Plot = createPlotlyComponent(window.Plotly);
-
 function PivotTableUISmartWrapper() {
   const [tableData, setTableData] = useState(data);
-  const [userResponses, setUserResponses] = useState(responses);
+  const [userResponses] = useState(responses);
 
   const [questionTitles, setQuestionTitles] = useState([]);
 
