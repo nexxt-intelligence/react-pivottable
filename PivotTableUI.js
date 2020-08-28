@@ -358,7 +358,7 @@ var PivotTableUI = function (_React$PureComponent2) {
   }, {
     key: 'componentDidUpdate',
     value: function componentDidUpdate() {
-      this.materializeInputB(this.props.data);
+      this.materializeInputB(Array.isArray(this.props.data));
     }
   }, {
     key: 'materializeInput',
