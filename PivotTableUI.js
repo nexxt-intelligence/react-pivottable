@@ -353,7 +353,7 @@ var PivotTableUI = function (_React$PureComponent2) {
   _createClass(PivotTableUI, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
-      this.materializeInputB(this.props.data);
+      this.materializeInputB(Array.isArray(this.props.data));
     }
   }, {
     key: 'componentDidUpdate',
