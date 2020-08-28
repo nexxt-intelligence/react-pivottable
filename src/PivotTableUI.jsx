@@ -261,7 +261,7 @@ class PivotTableUI extends React.PureComponent {
     if (Array.isArray(this.props.data)) {
       this.materializeInputB(this.props.data);
     } else {
-      this.setState({data: this.props.data});
+      this.materializeInput(this.props.data);
     }
   }
 
@@ -269,18 +269,19 @@ class PivotTableUI extends React.PureComponent {
     if (Array.isArray(this.props.data)) {
       this.materializeInputB(this.props.data);
     } else {
-      this.setState({data: this.props.data});
+      this.materializeInput(this.props.data);
     }
   }
 
-  materializeInput(nextData) {
-    if (this.state.data === nextData) {
+  materializeInput(nextdata) {
+    if (this.state.data === nextdata.data) {
       return;
     }
+
     const newState = {
-      data: nextData,
+      data: nextdata.data,
       attrValuesB: {},
-      materializedInput: [],
+      materializedInputB: [],
     };
 
     let recordsProcessed = 0;
@@ -288,7 +289,7 @@ class PivotTableUI extends React.PureComponent {
       newState.data,
       this.props.derivedAttributes,
       function(record) {
-        newState.materializedInput.push(record);
+        newState.materializedInputB.push(record);
         for (const attr of Object.keys(record)) {
           if (!(attr in newState.attrValuesB)) {
             newState.attrValuesB[attr] = {};

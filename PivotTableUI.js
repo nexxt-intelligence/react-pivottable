@@ -356,7 +356,7 @@ var PivotTableUI = function (_React$PureComponent2) {
       if (Array.isArray(this.props.data)) {
         this.materializeInputB(this.props.data);
       } else {
-        this.setState({ data: this.props.data });
+        this.materializeInput(this.props.data);
       }
     }
   }, {
@@ -365,24 +365,25 @@ var PivotTableUI = function (_React$PureComponent2) {
       if (Array.isArray(this.props.data)) {
         this.materializeInputB(this.props.data);
       } else {
-        this.setState({ data: this.props.data });
+        this.materializeInput(this.props.data);
       }
     }
   }, {
     key: 'materializeInput',
-    value: function materializeInput(nextData) {
-      if (this.state.data === nextData) {
+    value: function materializeInput(nextdata) {
+      if (this.state.data === nextdata.data) {
         return;
       }
+
       var newState = {
-        data: nextData,
+        data: nextdata.data,
         attrValuesB: {},
-        materializedInput: []
+        materializedInputB: []
       };
 
       var recordsProcessed = 0;
       _Utilities.PivotData.forEachRecord(newState.data, this.props.derivedAttributes, function (record) {
-        newState.materializedInput.push(record);
+        newState.materializedInputB.push(record);
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;
