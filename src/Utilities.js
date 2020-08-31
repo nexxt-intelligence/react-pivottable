@@ -538,6 +538,7 @@ Data Model class
 class PivotData {
   constructor(inputProps = {}) {
     this.props = Object.assign({}, PivotData.defaultProps, inputProps);
+
     PropTypes.checkPropTypes(
       PivotData.propTypes,
       this.props,

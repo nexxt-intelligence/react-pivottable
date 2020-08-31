@@ -43,8 +43,7 @@ var PivotTable = function (_React$PureComponent) {
   _createClass(PivotTable, [{
     key: 'render',
     value: function render() {
-      var Renderer = this.props.renderers[this.props.rendererName in this.props.renderers ? this.props.rendererName : Object.keys(this.props.renderers)[0]];
-      return _react2.default.createElement(Renderer, this.props);
+      return _react2.default.createElement(_TableRenderers2.default, this.props);
     }
   }]);
 

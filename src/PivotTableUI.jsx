@@ -251,7 +251,6 @@ class PivotTableUI extends React.PureComponent {
       maxZIndex: 1000,
       openDropdown: false,
       attrValuesB: {},
-      attrValuesB: {},
       materializedInput: [],
       materializedInputB: [],
     };
@@ -260,7 +259,7 @@ class PivotTableUI extends React.PureComponent {
   componentDidMount() {
     if (Array.isArray(this.props.data)) {
       this.materializeInputB(this.props.data);
-    } else {
+    } else if (this.props.data) {
       this.materializeInput(this.props.data);
     }
   }
@@ -268,7 +267,7 @@ class PivotTableUI extends React.PureComponent {
   componentDidUpdate() {
     if (Array.isArray(this.props.data)) {
       this.materializeInputB(this.props.data);
-    } else {
+    } else if (this.props.data) {
       this.materializeInput(this.props.data);
     }
   }
@@ -430,9 +429,13 @@ class PivotTableUI extends React.PureComponent {
           <DraggableAttribute
             name={item}
             key={item}
-            attrValuesB={this.state.data.find(
-              record => Object.keys(record)[0] === item
-            )}
+            attrValuesB={
+              Array.isArray(this.state.data)
+                ? this.state.data.find(
+                    record => Object.keys(record)[0] === item
+                  )
+                : {}
+            }
             valueFilter={filterType}
             sorter={getSort(this.props.sorters, index)}
             menuLimit={this.props.menuLimit}
@@ -449,9 +452,6 @@ class PivotTableUI extends React.PureComponent {
   }
 
   render() {
-    const numValsAllowed =
-      this.props.aggregators[this.props.aggregatorName]([])().numInputs || 0;
-
     const rendererName =
       this.props.rendererName in this.props.renderers
         ? this.props.rendererName
@@ -487,68 +487,6 @@ class PivotTableUI extends React.PureComponent {
       },
       value_z_to_a: {rowSymbol: '↑', colSymbol: '←', next: 'key_a_to_z'},
     };
-
-    const aggregatorCell = (
-      <td className="pvtVals">
-        <Dropdown
-          current={this.props.aggregatorName}
-          values={Object.keys(this.props.aggregators)}
-          open={this.isOpen('aggregators')}
-          zIndex={this.isOpen('aggregators') ? this.state.maxZIndex + 1 : 1}
-          toggle={() =>
-            this.setState({
-              openDropdown: this.isOpen('aggregators') ? false : 'aggregators',
-            })
-          }
-          setValue={this.propUpdater('aggregatorName')}
-        />
-        <a
-          role="button"
-          className="pvtstubOrder"
-          onClick={() =>
-            this.propUpdater('stubOrder')(sortIcons[this.props.stubOrder].next)
-          }
-        >
-          {sortIcons[this.props.stubOrder].rowSymbol}
-        </a>
-        <a
-          role="button"
-          className="pvtheaderOrder"
-          onClick={() =>
-            this.propUpdater('headerOrder')(
-              sortIcons[this.props.headerOrder].next
-            )
-          }
-        >
-          {sortIcons[this.props.headerOrder].colSymbol}
-        </a>
-        {numValsAllowed > 0 && <br />}
-        {new Array(numValsAllowed).fill().map((n, i) => [
-          <Dropdown
-            key={i}
-            current={this.props.vals[i]}
-            values={Object.keys(this.state.attrValuesB).filter(
-              e =>
-                !this.props.hiddenAttributes.includes(e) &&
-                !this.props.hiddenFromAggregators.includes(e)
-            )}
-            open={this.isOpen(`val${i}`)}
-            zIndex={this.isOpen(`val${i}`) ? this.state.maxZIndex + 1 : 1}
-            toggle={() =>
-              this.setState({
-                openDropdown: this.isOpen(`val${i}`) ? false : `val${i}`,
-              })
-            }
-            setValue={value =>
-              this.sendPropUpdate({
-                vals: {$splice: [[i, 1, value]]},
-              })
-            }
-          />,
-          i + 1 !== numValsAllowed ? <br key={`br${i}`} /> : null,
-        ])}
-      </td>
-    );
 
     const unusedAttrs = Object.keys(this.state.attrValuesB)
       .filter(
@@ -599,13 +537,7 @@ class PivotTableUI extends React.PureComponent {
 
     const outputCell = (
       <td className="pvtOutput">
-        <PivotTable
-          {...update(this.props, {
-            data: {$set: this.state.materializedInput},
-            data: {$set: this.state.materializedInputB},
-          })}
-          userResponses={this.props.userResponses}
-        />
+        <PivotTable {...this.props} userResponses={this.props.userResponses} />
       </td>
     );
 

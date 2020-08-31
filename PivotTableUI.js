@@ -334,19 +334,19 @@ var PivotTableUI = function (_React$PureComponent2) {
   _inherits(PivotTableUI, _React$PureComponent2);
 
   function PivotTableUI(props) {
-    var _this5$state;
-
     _classCallCheck(this, PivotTableUI);
 
     var _this5 = _possibleConstructorReturn(this, (PivotTableUI.__proto__ || Object.getPrototypeOf(PivotTableUI)).call(this, props));
 
-    _this5.state = (_this5$state = {
+    _this5.state = {
       unusedOrder: [],
       zIndices: {},
       maxZIndex: 1000,
       openDropdown: false,
-      attrValuesB: {}
-    }, _defineProperty(_this5$state, 'attrValuesB', {}), _defineProperty(_this5$state, 'materializedInput', []), _defineProperty(_this5$state, 'materializedInputB', []), _this5$state);
+      attrValuesB: {},
+      materializedInput: [],
+      materializedInputB: []
+    };
     return _this5;
   }
 
@@ -355,7 +355,7 @@ var PivotTableUI = function (_React$PureComponent2) {
     value: function componentDidMount() {
       if (Array.isArray(this.props.data)) {
         this.materializeInputB(this.props.data);
-      } else {
+      } else if (this.props.data) {
         this.materializeInput(this.props.data);
       }
     }
@@ -364,7 +364,7 @@ var PivotTableUI = function (_React$PureComponent2) {
     value: function componentDidUpdate() {
       if (Array.isArray(this.props.data)) {
         this.materializeInputB(this.props.data);
-      } else {
+      } else if (this.props.data) {
         this.materializeInput(this.props.data);
       }
     }
@@ -566,9 +566,9 @@ var PivotTableUI = function (_React$PureComponent2) {
           return _react2.default.createElement(DraggableAttribute, {
             name: item,
             key: item,
-            attrValuesB: _this7.state.data.find(function (record) {
+            attrValuesB: Array.isArray(_this7.state.data) ? _this7.state.data.find(function (record) {
               return Object.keys(record)[0] === item;
-            }),
+            }) : {},
             valueFilter: filterType,
             sorter: (0, _Utilities.getSort)(_this7.props.sorters, index),
             menuLimit: _this7.props.menuLimit,
@@ -586,8 +586,6 @@ var PivotTableUI = function (_React$PureComponent2) {
     key: 'render',
     value: function render() {
       var _this8 = this;
-
-      var numValsAllowed = this.props.aggregators[this.props.aggregatorName]([])().numInputs || 0;
 
       var rendererName = this.props.rendererName in this.props.renderers ? this.props.rendererName : Object.keys(this.props.renderers)[0];
 
@@ -622,67 +620,6 @@ var PivotTableUI = function (_React$PureComponent2) {
         value_z_to_a: { rowSymbol: '↑', colSymbol: '←', next: 'key_a_to_z' }
       };
 
-      var aggregatorCell = _react2.default.createElement(
-        'td',
-        { className: 'pvtVals' },
-        _react2.default.createElement(Dropdown, {
-          current: this.props.aggregatorName,
-          values: Object.keys(this.props.aggregators),
-          open: this.isOpen('aggregators'),
-          zIndex: this.isOpen('aggregators') ? this.state.maxZIndex + 1 : 1,
-          toggle: function toggle() {
-            return _this8.setState({
-              openDropdown: _this8.isOpen('aggregators') ? false : 'aggregators'
-            });
-          },
-          setValue: this.propUpdater('aggregatorName')
-        }),
-        _react2.default.createElement(
-          'a',
-          {
-            role: 'button',
-            className: 'pvtstubOrder',
-            onClick: function onClick() {
-              return _this8.propUpdater('stubOrder')(sortIcons[_this8.props.stubOrder].next);
-            }
-          },
-          sortIcons[this.props.stubOrder].rowSymbol
-        ),
-        _react2.default.createElement(
-          'a',
-          {
-            role: 'button',
-            className: 'pvtheaderOrder',
-            onClick: function onClick() {
-              return _this8.propUpdater('headerOrder')(sortIcons[_this8.props.headerOrder].next);
-            }
-          },
-          sortIcons[this.props.headerOrder].colSymbol
-        ),
-        numValsAllowed > 0 && _react2.default.createElement('br', null),
-        new Array(numValsAllowed).fill().map(function (n, i) {
-          return [_react2.default.createElement(Dropdown, {
-            key: i,
-            current: _this8.props.vals[i],
-            values: Object.keys(_this8.state.attrValuesB).filter(function (e) {
-              return !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromAggregators.includes(e);
-            }),
-            open: _this8.isOpen('val' + i),
-            zIndex: _this8.isOpen('val' + i) ? _this8.state.maxZIndex + 1 : 1,
-            toggle: function toggle() {
-              return _this8.setState({
-                openDropdown: _this8.isOpen('val' + i) ? false : 'val' + i
-              });
-            },
-            setValue: function setValue(value) {
-              return _this8.sendPropUpdate({
-                vals: { $splice: [[i, 1, value]] }
-              });
-            }
-          }), i + 1 !== numValsAllowed ? _react2.default.createElement('br', { key: 'br' + i }) : null];
-        })
-      );
-
       var unusedAttrs = Object.keys(this.state.attrValuesB).filter(function (e) {
         return !_this8.props.headers.includes(e) && !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromDragDrop.includes(e) && e !== 'id';
       }).sort((0, _Utilities.sortAs)(this.state.unusedOrder));
@@ -710,11 +647,7 @@ var PivotTableUI = function (_React$PureComponent2) {
       var outputCell = _react2.default.createElement(
         'td',
         { className: 'pvtOutput' },
-        _react2.default.createElement(_PivotTable2.default, _extends({}, (0, _immutabilityHelper2.default)(this.props, _defineProperty({
-          data: { $set: this.state.materializedInput }
-        }, 'data', { $set: this.state.materializedInputB })), {
-          userResponses: this.props.userResponses
-        }))
+        _react2.default.createElement(_PivotTable2.default, _extends({}, this.props, { userResponses: this.props.userResponses }))
       );
 
       if (horizUnused) {
