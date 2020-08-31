@@ -221,7 +221,7 @@ var TableRenderer = function (_React$Component) {
             return stubEntry[stubKey].map(function (stubOption, j) {
               var showStubLabel = true;
 
-              if (i === 0) {
+              if (j === 0) {
                 headerKeys.map(function (headerAttr) {
                   var headerOptions = headerData.find(function (record) {
                     return record[headerAttr] ? record : null;

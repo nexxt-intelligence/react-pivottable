@@ -1,14 +1,47 @@
 export const data = [
-  {interest: [{text: 'Sure', value:"1" }, {text:'Not interested', value: "2"}], id: 4242},
-  {gender: [{text: 'Male', value: "1"}, {text: 'Female', value: "2"}, {text: 'Other', value: "3"}], id: 4244},
-  {age: [{text: '<18', value: "1"}, {text: '18-24', value: "2"}, {text: '>24', value: "3"}], id: 4245},
   {
-    'student status': [{text: 'a post-secondary student', value: "1"}, {text: 'working', value: "2"}, {text:'other', value: "3"}],
+    interest: [
+      {text: 'Sure', value: '1'},
+      {text: 'Not interested', value: '2'},
+    ],
+    id: 4243,
+  },
+  {
+    gender: [
+      {text: 'Male', value: '1'},
+      {text: 'Female', value: '2'},
+      {text: 'Other', value: '3'},
+    ],
+    id: 4244,
+  },
+  {
+    age: [
+      {text: '<18', value: '1'},
+      {text: '18-24', value: '2'},
+      {text: '>24', value: '3'},
+    ],
+    id: 4245,
+  },
+  {
+    'student status': [
+      {text: 'a post-secondary student', value: '1'},
+      {text: 'working', value: '2'},
+      {text: 'other', value: '3'},
+    ],
     id: 4246,
   },
-  {'student type': [{text: 'Yes', value: "1"}, {text:'No', value: "2"}], id: 4247},
   {
-    'sound check q': [{text: 'Yes, my sound is working', value: "1"}, {text:"No, my sound isn't working", value: "2"}],
+    'student type': [
+      {text: 'Yes', value: '1'},
+      {text: 'No', value: '2'},
+    ],
+    id: 4247,
+  },
+  {
+    'sound check q': [
+      {text: 'Yes, my sound is working', value: '1'},
+      {text: "No, my sound isn't working", value: '2'},
+    ],
     id: 4291,
   },
 ];
