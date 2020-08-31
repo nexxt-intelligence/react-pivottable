@@ -167,7 +167,7 @@ class TableRenderer extends React.Component {
             return stubEntry[stubKey].map((stubOption, j) => {
               let showStubLabel = true;
 
-              if (i === 0) {
+              if (j === 0) {
                 headerKeys.map(headerAttr => {
                   const headerOptions = headerData.find(record =>
                     record[headerAttr] ? record : null

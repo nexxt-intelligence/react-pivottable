@@ -5,7 +5,6 @@ import PivotTableUI from '../src/PivotTableUI';
 import '../src/pivottable.css';
 import Papa from 'papaparse';
 import {data, responses} from './data';
-import {configTableData} from './config';
 
 function PivotTableUISmartWrapper() {
   const [tableData, setTableData] = useState(data);
