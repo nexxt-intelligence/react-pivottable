@@ -37,6 +37,28 @@ export const data = [
     ],
     id: 4247,
   },
+  {province: [], id: 4249},
+  {
+    appeal: [
+      {text: 'Not appealing at all', value: '1'},
+      {text: 'Not very appealing', value: '2'},
+      {text: 'Not sure', value: '3'},
+      {text: 'A little appealing', value: '4'},
+      {text: 'Very appealing', value: '5'},
+    ],
+    id: 4252,
+  },
+  {
+    'appeal 2nd ad': [
+      {text: 'Not appealing at all', value: '1'},
+      {text: 'Not very appealing', value: '2'},
+      {text: 'Not sure', value: '3'},
+      {text: 'A little appealing', value: '4'},
+      {text: 'Very appealing', value: '5'},
+    ],
+    id: 4284,
+  },
+  {comparison: [], id: 4285},
   {
     'sound check q': [
       {text: 'Yes, my sound is working', value: '1'},

@@ -498,15 +498,10 @@ class PivotTableUI extends React.PureComponent {
       )
       .sort(sortAs(this.state.unusedOrder));
 
-    const unusedLength = unusedAttrs.reduce((r, e) => r + e.length, 0);
-    const horizUnused = unusedLength < this.props.unusedOrientationCutoff;
-
     const unusedAttrsCell = this.makeDnDCell(
       unusedAttrs,
       order => this.setState({unusedOrder: order}),
-      `pvtAxisContainer pvtUnused ${
-        horizUnused ? 'pvtHorizList' : 'pvtVertList'
-      }`,
+      `pvtAxisContainer pvtUnused ${'pvtHorizList'}`,
       'stub'
     );
 
@@ -541,36 +536,18 @@ class PivotTableUI extends React.PureComponent {
       </td>
     );
 
-    if (horizUnused) {
-      return (
-        <table className="pvtUi">
-          <tbody onClick={() => this.setState({openDropdown: false})}>
-            <tr>
-              <td></td>
-              {unusedAttrsCell}
-            </tr>
-            <tr>
-              <td></td>
-              {headerAttrsCell}
-            </tr>
-            <tr>
-              {stubAttrsCell}
-              {outputCell}
-            </tr>
-          </tbody>
-        </table>
-      );
-    }
-
     return (
       <table className="pvtUi">
         <tbody onClick={() => this.setState({openDropdown: false})}>
           <tr>
             <td></td>
+            {unusedAttrsCell}
+          </tr>
+          <tr>
+            <td></td>
             {headerAttrsCell}
           </tr>
           <tr>
-            {unusedAttrsCell}
             {stubAttrsCell}
             {outputCell}
           </tr>

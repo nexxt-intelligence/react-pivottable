@@ -624,14 +624,9 @@ var PivotTableUI = function (_React$PureComponent2) {
         return !_this8.props.headers.includes(e) && !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromDragDrop.includes(e) && e !== 'id';
       }).sort((0, _Utilities.sortAs)(this.state.unusedOrder));
 
-      var unusedLength = unusedAttrs.reduce(function (r, e) {
-        return r + e.length;
-      }, 0);
-      var horizUnused = unusedLength < this.props.unusedOrientationCutoff;
-
       var unusedAttrsCell = this.makeDnDCell(unusedAttrs, function (order) {
         return _this8.setState({ unusedOrder: order });
-      }, 'pvtAxisContainer pvtUnused ' + (horizUnused ? 'pvtHorizList' : 'pvtVertList'), 'stub');
+      }, 'pvtAxisContainer pvtUnused ' + 'pvtHorizList', 'stub');
 
       var headerAttrs = this.props.headers.filter(function (e) {
         return !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromDragDrop.includes(e);
@@ -650,37 +645,6 @@ var PivotTableUI = function (_React$PureComponent2) {
         _react2.default.createElement(_PivotTable2.default, _extends({}, this.props, { userResponses: this.props.userResponses }))
       );
 
-      if (horizUnused) {
-        return _react2.default.createElement(
-          'table',
-          { className: 'pvtUi' },
-          _react2.default.createElement(
-            'tbody',
-            { onClick: function onClick() {
-                return _this8.setState({ openDropdown: false });
-              } },
-            _react2.default.createElement(
-              'tr',
-              null,
-              _react2.default.createElement('td', null),
-              unusedAttrsCell
-            ),
-            _react2.default.createElement(
-              'tr',
-              null,
-              _react2.default.createElement('td', null),
-              headerAttrsCell
-            ),
-            _react2.default.createElement(
-              'tr',
-              null,
-              stubAttrsCell,
-              outputCell
-            )
-          )
-        );
-      }
-
       return _react2.default.createElement(
         'table',
         { className: 'pvtUi' },
@@ -693,12 +657,17 @@ var PivotTableUI = function (_React$PureComponent2) {
             'tr',
             null,
             _react2.default.createElement('td', null),
+            unusedAttrsCell
+          ),
+          _react2.default.createElement(
+            'tr',
+            null,
+            _react2.default.createElement('td', null),
             headerAttrsCell
           ),
           _react2.default.createElement(
             'tr',
             null,
-            unusedAttrsCell,
             stubAttrsCell,
             outputCell
           )
