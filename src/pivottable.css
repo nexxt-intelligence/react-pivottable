@@ -19,8 +19,6 @@ table.pvtTable {
   font-size: 8pt;
   text-align: left;
   border-collapse: collapse;
-  margin-top: 3px;
-  margin-left: 3px;
   font-family: Verdana;
 }
 table.pvtTable thead tr th,
@@ -137,6 +135,11 @@ table.pvtTable tbody tr td {
 }
 
 .pvtRows {
+  height: 35px;
+}
+
+.pvtCols {
+  background-color: #fbfcfd;
   height: 35px;
 }
 
@@ -290,6 +293,7 @@ table.pvtTable tbody tr td {
   margin-bottom: 1px;
   padding: 3px;
   cursor: default;
+  padding-left: 2rem;
 }
 
 .pvtCheckContainer p.selected {
@@ -320,4 +324,34 @@ table.pvtTable tbody tr td {
 
 .pvtRendererArea {
   padding: 5px;
+}
+
+.settings-cell {
+  background-color: #f2f5fa;
+  border: 1px solid #a2b1c6;
+  text-align: center;
+}
+
+.settings-conrol {
+  list-style-type: none;
+}
+
+.settings-conrol > .pvtAttr {
+  border: 2px solid #1c45d9;
+  border-radius: 6px;
+  background-color: #2d67cb;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem 2rem;
+}
+
+.settings-conrol > .pvtAttr > .pvtTriangle {
+  color: white;
+  margin-left: 1.5rem;
+}
+
+.cell-placeholder {
+  font-size: 1.25rem;
+  color: gray;
+  text-align: center;
 }

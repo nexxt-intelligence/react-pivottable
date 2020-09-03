@@ -4,7 +4,9 @@ import {PivotData} from './Utilities';
 
 class TableRenderer extends React.Component {
   calculateCell(stubEntry, stubId, headerEntry, headerAttr) {
-    const {userResponses} = this.props;
+    const {userResponses, settings} = this.props;
+    const {showPercentage} = settings;
+
     const headerOptionId = headerEntry.id;
 
     headerEntry[headerAttr].forEach(entry => {
@@ -38,15 +40,21 @@ class TableRenderer extends React.Component {
     });
 
     const cells = headerEntry[headerAttr].map(entry => {
-      const score = Math.round((entry.stubScore / entry.baseScore) * 100);
+      if (showPercentage) {
+        const score = Math.round((entry.stubScore / entry.baseScore) * 100);
+        return <td>{`${score ? score : 0}%`}</td>;
+      }
 
-      return <td>{`${score ? score : 0}%`}</td>;
+      return <td>{entry.stubScore}</td>;
     });
 
     return cells;
   }
 
   calculateMissingValues(headerData, headerKeys, stubId) {
+    const {settings} = this.props;
+    const {showPercentage} = settings;
+
     const missingValues = headerKeys.flatMap(headerAttr => {
       const headerEntry = headerData.find(record =>
         record[headerAttr] ? record : null
@@ -55,9 +63,13 @@ class TableRenderer extends React.Component {
       return headerEntry[headerAttr].map(entry => {
         const missingRaw =
           entry.baseScore - entry.stubScores[headerAttr][stubId];
-        const missingValue = Math.round((missingRaw / entry.baseScore) * 100);
 
-        return missingValue ? missingValue : 0;
+        if (showPercentage) {
+          const missingValue = Math.round((missingRaw / entry.baseScore) * 100);
+          return missingValue ? missingValue : 0;
+        }
+
+        return missingRaw;
       });
     });
 
@@ -241,7 +253,12 @@ class TableRenderer extends React.Component {
                             Missing Values
                           </th>
                           {missingValues.map(missingValue => {
-                            return <td>{missingValue}%</td>;
+                            return (
+                              <td>
+                                {missingValue}
+                                {this.props.settings.showPercentage && '%'}
+                              </td>
+                            );
                           })}
                         </tr>
                       );
