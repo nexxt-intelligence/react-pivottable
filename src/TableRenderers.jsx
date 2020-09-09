@@ -136,13 +136,91 @@ class TableRenderer extends React.Component {
     return total;
   }
 
+  updateSpans() {
+    const rows = [...this.state.headersRow];
+    rows.forEach(row => {
+      row.html = React.cloneElement(row.html, {
+        children: row.html.props.children.map(th => {
+          const divider = rows.length > 1 ? rows[rows.length - 1].length : 1;
+
+          return React.cloneElement(th, {
+            colSpan: divider / row.length,
+          });
+        }),
+      });
+    });
+
+    this.setState({
+      headersRow: rows,
+    });
+  }
+
+  refreshHeaders() {
+    const rows = [];
+    const headerKeys = this.props.headers;
+    const headerData = this.props.data;
+    let it = 0;
+
+    // insert top row
+    const currHeaderKey = headerKeys[0];
+    const headerOptions = headerData.find(record =>
+      record[currHeaderKey] ? record : null
+    )[currHeaderKey];
+
+    rows.push({
+      html: (
+        <tr>
+          {headerOptions.map(option => (
+            <th>{option.text}</th>
+          ))}
+        </tr>
+      ),
+      length: headerOptions.length,
+    });
+
+    while (it < headerKeys.length - 1) {
+      const nextOptionCells = [];
+
+      const nextHeaderKey = headerKeys[it + 1];
+      const nextHeaderOptions = headerData.find(record =>
+        record[nextHeaderKey] ? record : null
+      )[nextHeaderKey];
+
+      for (let j = 0; j < rows[it].length; j++) {
+        nextHeaderOptions.forEach(nextOption => {
+          nextOptionCells.push(<th colSpan="1">{nextOption.text}</th>);
+        });
+      }
+
+      rows.push({
+        html: <tr>{nextOptionCells.map(o => o)}</tr>,
+        length: nextOptionCells.length,
+      });
+      it++;
+    }
+
+    this.setState(
+      {
+        headersRow: rows,
+      },
+      () => {
+        this.updateSpans();
+      }
+    );
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.headers !== this.props.headers) {
       let it = 0;
+
       const rows = [...this.state.headersRow];
       const headerKeys = this.props.headers;
       const headerData = this.props.data;
 
+      if (this.props.headers.length <= prevProps.headers.length) {
+        this.refreshHeaders();
+        return;
+      }
       if (headerKeys.length === 1) {
         const currHeaderKey = headerKeys[it];
         const headerOptions = headerData.find(record =>
@@ -164,13 +242,8 @@ class TableRenderer extends React.Component {
       }
 
       while (it < headerKeys.length - 1) {
-        const currHeaderKey = headerKeys[it];
-        const headerOptions = headerData.find(record =>
-          record[currHeaderKey] ? record : null
-        )[currHeaderKey];
         const nextOptionCells = [];
 
-        console.log('row: ', this.state.headersRow[it]);
         const nextHeaderKey = headerKeys[it + 1];
         const nextHeaderOptions = headerData.find(record =>
           record[nextHeaderKey] ? record : null
@@ -198,44 +271,7 @@ class TableRenderer extends React.Component {
         JSON.stringify(this.state.headersRow) &&
       this.props.headers.length > 1
     ) {
-      console.log('updating 😰');
-      console.log(
-        JSON.stringify(prevState.headersRow),
-        'vs',
-        this.state.headersRow
-      );
-      const rows = [...this.state.headersRow];
-      rows.forEach((row, i) => {
-        row.html = React.cloneElement(row.html, {
-          children: row.html.props.children.map(th => {
-            let spanMultiplier = 1;
-            let nextRowLength = 1;
-            if (rows[i + 2]) {
-              spanMultiplier = rows[i + 2].html.props.colSpan
-                ? rows[i + 2].html.props.colSpan
-                : 1;
-
-              console.log(rows[i + 2].html.props.colSpan);
-
-              nextRowLength = rows[i + 2].length / rows[i + 1].length;
-              // console.log(spanMultiplier);
-              // console.log(nextRowLength);
-            } else if (rows[i + 1]) {
-              nextRowLength = rows[i + 1].length / row.length;
-            }
-
-            const divider = rows.length > 1 ? rows[rows.length - 1].length : 1;
-
-            return React.cloneElement(th, {
-              colSpan: divider / row.length,
-            });
-          }),
-        });
-      });
-
-      this.setState({
-        headersRow: rows,
-      });
+      this.updateSpans();
     }
   }
 
@@ -309,7 +345,13 @@ class TableRenderer extends React.Component {
           )}
           {multiLevelMode && (
             <tr>
-              <td colSpan="2"></td>
+              <td colSpan="2">
+                {headerKeys.map(headerKey => (
+                  <tr>
+                    <th>{headerKey}</th>
+                  </tr>
+                ))}
+              </td>
               <td>{this.state.headersRow.map(row => row.html)}</td>
             </tr>
           )}
