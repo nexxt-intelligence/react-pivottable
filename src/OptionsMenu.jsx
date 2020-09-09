@@ -4,7 +4,7 @@ import Draggable from 'react-draggable';
 
 const optionsMap = {
   showPercentage: 'Show Percentage',
-  multiHeaderMode: 'Multi-Header Mode',
+  multiLevelMode: 'Multi-Level Mode',
 };
 
 function OptionsList(props) {

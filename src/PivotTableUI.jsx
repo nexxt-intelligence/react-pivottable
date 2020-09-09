@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {PivotData, sortAs, getSort} from './Utilities';
-import PivotTable from './PivotTable';
+import TableRenderers from './TableRenderers';
 import Sortable from 'react-sortablejs';
 import Draggable from 'react-draggable';
 import OptionsMenu from './OptionsMenu';
@@ -254,7 +254,7 @@ class PivotTableUI extends React.Component {
       materializedInputB: [],
       tableOptions: {
         showPercentage: true,
-        multiHeaderMode: false,
+        multiLevelMode: true,
       },
     };
 
@@ -518,7 +518,11 @@ class PivotTableUI extends React.Component {
     );
 
     const outputCells = (
-      <PivotTable {...this.props} settings={this.state.tableOptions} />
+      <TableRenderers
+        {...this.props}
+        settings={this.state.tableOptions}
+        multiLevelMode={this.state.tableOptions.multiLevelMode}
+      />
     );
 
     return (
@@ -539,7 +543,7 @@ class PivotTableUI extends React.Component {
   }
 }
 
-PivotTableUI.propTypes = Object.assign({}, PivotTable.propTypes, {
+PivotTableUI.propTypes = Object.assign({}, PivotData.propTypes, {
   onChange: PropTypes.func.isRequired,
   hiddenAttributes: PropTypes.arrayOf(PropTypes.string),
   hiddenFromAggregators: PropTypes.arrayOf(PropTypes.string),
@@ -548,7 +552,7 @@ PivotTableUI.propTypes = Object.assign({}, PivotTable.propTypes, {
   menuLimit: PropTypes.number,
 });
 
-PivotTableUI.defaultProps = Object.assign({}, PivotTable.defaultProps, {
+PivotTableUI.defaultProps = Object.assign({}, PivotData.defaultProps, {
   hiddenAttributes: [],
   hiddenFromAggregators: [],
   hiddenFromDragDrop: [],
