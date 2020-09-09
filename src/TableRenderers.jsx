@@ -326,23 +326,44 @@ class TableRenderer extends React.Component {
       <table className="pvtTable">
         <thead>
           {multiFlatMode && (
-            <tr>
-              <td colSpan="2"></td>
-              {headerKeys.map(headerAttr => {
-                const headerEntries = headerData.find(record =>
-                  record[headerAttr] ? record : null
-                )[headerAttr];
+            <React.Fragment>
+              <tr>
+                <td colSpan="2"></td>
+                {headerKeys.map((headerKey, i) => {
+                  const headerEntries = headerData.find(record =>
+                    record[headerKey] ? record : null
+                  )[headerKey];
 
-                return headerEntries.map((headerEntry, i) => {
                   return (
-                    <th className="pvtColLabel" key={`headerKey${i}`}>
-                      {headerEntry.text}
+                    <th
+                      className="pvtColLabel"
+                      key={`headerKeyTitle${i}`}
+                      colSpan={headerEntries.length}
+                    >
+                      {headerKey}
                     </th>
                   );
-                });
-              })}
-            </tr>
+                })}
+              </tr>
+              <tr>
+                <td colSpan="2"></td>
+                {headerKeys.map(headerAttr => {
+                  const headerEntries = headerData.find(record =>
+                    record[headerAttr] ? record : null
+                  )[headerAttr];
+
+                  return headerEntries.map((headerEntry, i) => {
+                    return (
+                      <th className="pvtColLabel" key={`headerKey${i}`}>
+                        {headerEntry.text}
+                      </th>
+                    );
+                  });
+                })}
+              </tr>
+            </React.Fragment>
           )}
+
           {multiLevelMode && (
             <tr>
               <td colSpan="2">
@@ -436,49 +457,52 @@ class TableRenderer extends React.Component {
                     <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
                       {stubOption.text}
                     </th>
-                    {headerKeys.map(headerAttr => {
-                      const headerEntry = headerData.find(record =>
-                        record[headerAttr] ? record : null
-                      );
 
-                      return this.calculateCell(
-                        stubOption,
-                        stubEntry.id,
-                        headerEntry,
-                        headerAttr
-                      );
-                    })}
+                    {multiFlatMode &&
+                      headerKeys.map(headerAttr => {
+                        const headerEntry = headerData.find(record =>
+                          record[headerAttr] ? record : null
+                        );
+
+                        return this.calculateCell(
+                          stubOption,
+                          stubEntry.id,
+                          headerEntry,
+                          headerAttr
+                        );
+                      })}
                   </tr>
-                  {[true].map(_ => {
-                    const missingValues = this.calculateMissingValues(
-                      headerData,
-                      headerKeys,
-                      stubEntry.id
-                    );
-                    if (
-                      j === stubEntry[stubKey].length - 1 &&
-                      missingValues.filter(value => value > 0).length > 0
-                    ) {
-                      return (
-                        <tr>
-                          <td></td>
-                          <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                            Missing Values
-                          </th>
-                          {missingValues.map(missingValue => {
-                            return (
-                              <td>
-                                {missingValue}
-                                {this.props.settings.showPercentage && '%'}
-                              </td>
-                            );
-                          })}
-                        </tr>
+                  {multiFlatMode &&
+                    [true].map(_ => {
+                      const missingValues = this.calculateMissingValues(
+                        headerData,
+                        headerKeys,
+                        stubEntry.id
                       );
-                    }
+                      if (
+                        j === stubEntry[stubKey].length - 1 &&
+                        missingValues.filter(value => value > 0).length > 0
+                      ) {
+                        return (
+                          <tr>
+                            <td></td>
+                            <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                              Missing Values
+                            </th>
+                            {missingValues.map(missingValue => {
+                              return (
+                                <td>
+                                  {missingValue}
+                                  {this.props.settings.showPercentage && '%'}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      }
 
-                    return null;
-                  })}
+                      return null;
+                    })}
                 </React.Fragment>
               );
             });
