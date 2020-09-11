@@ -23,9 +23,9 @@ var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
 
 var _Utilities = require('./Utilities');
 
-var _PivotTable = require('./PivotTable');
+var _TableRenderers = require('./TableRenderers');
 
-var _PivotTable2 = _interopRequireDefault(_PivotTable);
+var _TableRenderers2 = _interopRequireDefault(_TableRenderers);
 
 var _reactSortablejs = require('react-sortablejs');
 
@@ -34,6 +34,10 @@ var _reactSortablejs2 = _interopRequireDefault(_reactSortablejs);
 var _reactDraggable = require('react-draggable');
 
 var _reactDraggable2 = _interopRequireDefault(_reactDraggable);
+
+var _OptionsMenu = require('./OptionsMenu');
+
+var _OptionsMenu2 = _interopRequireDefault(_OptionsMenu);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56,7 +60,10 @@ var DraggableAttribute = exports.DraggableAttribute = function (_React$Component
 
     var _this = _possibleConstructorReturn(this, (DraggableAttribute.__proto__ || Object.getPrototypeOf(DraggableAttribute)).call(this, props));
 
-    _this.state = { open: false, filterText: '' };
+    _this.state = {
+      open: false,
+      filterText: ''
+    };
     return _this;
   }
 
@@ -192,18 +199,6 @@ var DraggableAttribute = exports.DraggableAttribute = function (_React$Component
                   },
                   className: filterName && filterName[x.text] ? '' : 'selected'
                 },
-                _react2.default.createElement(
-                  'a',
-                  { className: 'pvtOnly', onClick: function onClick(e) {
-                      return _this2.selectOnly(e, x);
-                    } },
-                  'only'
-                ),
-                _react2.default.createElement(
-                  'a',
-                  { className: 'pvtOnlySpacer' },
-                  '\xA0'
-                ),
                 x.text === '' ? null : x.text
               );
             })
@@ -330,8 +325,8 @@ var Dropdown = exports.Dropdown = function (_React$PureComponent) {
   return Dropdown;
 }(_react2.default.PureComponent);
 
-var PivotTableUI = function (_React$PureComponent2) {
-  _inherits(PivotTableUI, _React$PureComponent2);
+var PivotTableUI = function (_React$Component2) {
+  _inherits(PivotTableUI, _React$Component2);
 
   function PivotTableUI(props) {
     _classCallCheck(this, PivotTableUI);
@@ -345,8 +340,14 @@ var PivotTableUI = function (_React$PureComponent2) {
       openDropdown: false,
       attrValuesB: {},
       materializedInput: [],
-      materializedInputB: []
+      materializedInputB: [],
+      tableOptions: {
+        showPercentage: true,
+        multiLevelMode: false
+      }
     };
+
+    _this5.toggleTableOption = _this5.toggleTableOption.bind(_this5);
     return _this5;
   }
 
@@ -485,6 +486,14 @@ var PivotTableUI = function (_React$PureComponent2) {
       this.setState(newState);
     }
   }, {
+    key: 'toggleTableOption',
+    value: function toggleTableOption(optionName) {
+      var tableOptions = this.state.tableOptions;
+      tableOptions[optionName] = !tableOptions[optionName];
+
+      this.setState({ tableOptions: tableOptions });
+    }
+  }, {
     key: 'sendPropUpdate',
     value: function sendPropUpdate(command) {
       this.props.onChange((0, _immutabilityHelper2.default)(this.props, command));
@@ -549,6 +558,7 @@ var PivotTableUI = function (_React$PureComponent2) {
       var _this7 = this;
 
       var filterType = type === 'stub' ? this.props.stubValueFilter : this.props.headerValueFilter;
+
       return _react2.default.createElement(
         _reactSortablejs2.default,
         {
@@ -587,38 +597,15 @@ var PivotTableUI = function (_React$PureComponent2) {
     value: function render() {
       var _this8 = this;
 
-      var rendererName = this.props.rendererName in this.props.renderers ? this.props.rendererName : Object.keys(this.props.renderers)[0];
-
       var rendererCell = _react2.default.createElement(
         'td',
-        { className: 'pvtRenderers' },
-        _react2.default.createElement(Dropdown, {
-          current: rendererName,
-          values: Object.keys(this.props.renderers),
-          open: this.isOpen('renderer'),
-          zIndex: this.isOpen('renderer') ? this.state.maxZIndex + 1 : 1,
-          toggle: function toggle() {
-            return _this8.setState({
-              openDropdown: _this8.isOpen('renderer') ? false : 'renderer'
-            });
-          },
-          setValue: this.propUpdater('rendererName')
+        { className: 'settings-cell', rowSpan: '2' },
+        _react2.default.createElement(_OptionsMenu2.default, {
+          moveFilterBoxToTop: this.moveFilterBoxToTop.bind(this),
+          toggleValue: this.toggleTableOption,
+          options: this.state.tableOptions
         })
       );
-
-      var sortIcons = {
-        key_a_to_z: {
-          rowSymbol: '↕',
-          colSymbol: '↔',
-          next: 'value_a_to_z'
-        },
-        value_a_to_z: {
-          rowSymbol: '↓',
-          colSymbol: '→',
-          next: 'value_z_to_a'
-        },
-        value_z_to_a: { rowSymbol: '↑', colSymbol: '←', next: 'key_a_to_z' }
-      };
 
       var unusedAttrs = Object.keys(this.state.attrValuesB).filter(function (e) {
         return !_this8.props.headers.includes(e) && !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromDragDrop.includes(e) && e !== 'id';
@@ -626,7 +613,7 @@ var PivotTableUI = function (_React$PureComponent2) {
 
       var unusedAttrsCell = this.makeDnDCell(unusedAttrs, function (order) {
         return _this8.setState({ unusedOrder: order });
-      }, 'pvtAxisContainer pvtUnused ' + 'pvtHorizList', 'stub');
+      }, 'pvtAxisContainer pvtUnused ' + 'pvtHorizList', 'header');
 
       var headerAttrs = this.props.headers.filter(function (e) {
         return !_this8.props.hiddenAttributes.includes(e) && !_this8.props.hiddenFromDragDrop.includes(e);
@@ -639,11 +626,10 @@ var PivotTableUI = function (_React$PureComponent2) {
       });
       var stubAttrsCell = this.makeDnDCell(stubAttrs, this.propUpdater('stubs'), 'pvtAxisContainer pvtVertList pvtRows', 'stub');
 
-      var outputCell = _react2.default.createElement(
-        'td',
-        { className: 'pvtOutput' },
-        _react2.default.createElement(_PivotTable2.default, _extends({}, this.props, { userResponses: this.props.userResponses }))
-      );
+      var outputCells = _react2.default.createElement(_TableRenderers2.default, _extends({}, this.props, {
+        settings: this.state.tableOptions,
+        multiLevelMode: this.state.tableOptions.multiLevelMode
+      }));
 
       return _react2.default.createElement(
         'table',
@@ -656,20 +642,19 @@ var PivotTableUI = function (_React$PureComponent2) {
           _react2.default.createElement(
             'tr',
             null,
-            _react2.default.createElement('td', null),
+            rendererCell,
             unusedAttrsCell
           ),
           _react2.default.createElement(
             'tr',
             null,
-            _react2.default.createElement('td', null),
             headerAttrsCell
           ),
           _react2.default.createElement(
             'tr',
             null,
             stubAttrsCell,
-            outputCell
+            outputCells
           )
         )
       );
@@ -677,9 +662,9 @@ var PivotTableUI = function (_React$PureComponent2) {
   }]);
 
   return PivotTableUI;
-}(_react2.default.PureComponent);
+}(_react2.default.Component);
 
-PivotTableUI.propTypes = Object.assign({}, _PivotTable2.default.propTypes, {
+PivotTableUI.propTypes = Object.assign({}, _Utilities.PivotData.propTypes, {
   onChange: _propTypes2.default.func.isRequired,
   hiddenAttributes: _propTypes2.default.arrayOf(_propTypes2.default.string),
   hiddenFromAggregators: _propTypes2.default.arrayOf(_propTypes2.default.string),
@@ -688,7 +673,7 @@ PivotTableUI.propTypes = Object.assign({}, _PivotTable2.default.propTypes, {
   menuLimit: _propTypes2.default.number
 });
 
-PivotTableUI.defaultProps = Object.assign({}, _PivotTable2.default.defaultProps, {
+PivotTableUI.defaultProps = Object.assign({}, _Utilities.PivotData.defaultProps, {
   hiddenAttributes: [],
   hiddenFromAggregators: [],
   hiddenFromDragDrop: [],

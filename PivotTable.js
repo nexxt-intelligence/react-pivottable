@@ -31,8 +31,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 /* eslint-disable react/prop-types */
 // eslint can't see inherited propTypes!
 
-var PivotTable = function (_React$PureComponent) {
-  _inherits(PivotTable, _React$PureComponent);
+var PivotTable = function (_React$Component) {
+  _inherits(PivotTable, _React$Component);
 
   function PivotTable() {
     _classCallCheck(this, PivotTable);
@@ -48,7 +48,7 @@ var PivotTable = function (_React$PureComponent) {
   }]);
 
   return PivotTable;
-}(_react2.default.PureComponent);
+}(_react2.default.Component);
 
 PivotTable.propTypes = Object.assign({}, _Utilities.PivotData.propTypes, {
   rendererName: _propTypes2.default.string,
