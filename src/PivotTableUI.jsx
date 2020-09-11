@@ -254,7 +254,7 @@ class PivotTableUI extends React.Component {
       materializedInputB: [],
       tableOptions: {
         showPercentage: true,
-        multiLevelMode: true,
+        multiLevelMode: false,
       },
     };
 
