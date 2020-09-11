@@ -46,7 +46,7 @@ class TableRenderer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      headersRow: [],
+      headersRows: [],
     };
   }
 
@@ -136,22 +136,110 @@ class TableRenderer extends React.Component {
     return total;
   }
 
-  updateSpans() {
-    const rows = [...this.state.headersRow];
-    rows.forEach(row => {
-      row.html = React.cloneElement(row.html, {
-        children: row.html.props.children.map(th => {
-          const divider = rows.length > 1 ? rows[rows.length - 1].length : 1;
+  calculateMultiLevelCell(stubEntry, stubId, index, finalRowLength) {
+    const {userResponses, settings} = this.props;
+    const {showPercentage} = settings;
+    const rows = [...this.state.headersRows];
+    const selectedValues = [];
 
-          return React.cloneElement(th, {
-            colSpan: divider / row.length,
-          });
-        }),
+    rows.forEach(row => {
+      const value =
+        Math.ceil(((index + 1) * row.length) / finalRowLength) %
+        row.optionsLength;
+
+      selectedValues.push({
+        title: row.title,
+        questionId: row.questionId,
+        value: value > 0 ? value : row.optionsLength,
+      });
+    });
+
+    const entry = {
+      baseScore: 0,
+      stubScore: 0,
+      stubScores: {},
+    };
+
+    userResponses.forEach(response => {
+      if (!entry.stubScores[index]) {
+        entry.stubScores[index] = {};
+      }
+
+      const checkedValues = selectedValues.filter(
+        selectedValue =>
+          response[selectedValue.questionId] == selectedValue.value
+      );
+
+      if (checkedValues.length === selectedValues.length) {
+        entry.baseScore++;
+
+        if (!entry.stubScores[index][stubId]) {
+          entry.stubScores[index][stubId] = 0;
+        }
+
+        if (response[stubId] === stubEntry.value) {
+          entry.stubScore++;
+          entry.stubScores[index][stubId] += 1;
+        }
+      }
+    });
+
+    if (showPercentage) {
+      const score = Math.round((entry.stubScore / entry.baseScore) * 100);
+      return <td>{`${score ? score : 0}%`}</td>;
+    }
+
+    return <td>{entry.stubScore}</td>;
+  }
+
+  getMultiLevelHeaderBase(index, finalRowLength) {
+    const {userResponses} = this.props;
+    const rows = [...this.state.headersRows];
+    const selectedValues = [];
+
+    let total = 0;
+
+    rows.forEach(row => {
+      const value =
+        Math.ceil(((index + 1) * row.length) / finalRowLength) %
+        row.optionsLength;
+
+      selectedValues.push({
+        title: row.title,
+        questionId: row.questionId,
+        value: value > 0 ? value : row.optionsLength,
+      });
+    });
+
+    userResponses.forEach(response => {
+      const checkedValues = selectedValues.filter(
+        selectedValue =>
+          response[selectedValue.questionId] == selectedValue.value
+      );
+
+      if (checkedValues.length === selectedValues.length) {
+        total++;
+      }
+    });
+
+    return total;
+  }
+
+  updateSpans() {
+    const rows = [...this.state.headersRows];
+
+    rows.forEach(row => {
+      row.html = row.html.map(th => {
+        const divider = rows.length > 1 ? rows[rows.length - 1].length : 1;
+
+        return React.cloneElement(th, {
+          colSpan: divider / row.length,
+        });
       });
     });
 
     this.setState({
-      headersRow: rows,
+      headersRows: rows,
     });
   }
 
@@ -162,29 +250,30 @@ class TableRenderer extends React.Component {
     let it = 0;
 
     // insert top row
-    const currHeaderKey = headerKeys[0];
-    const headerOptions = headerData.find(record =>
+    const currHeaderKey = headerKeys[it];
+    const headerRecord = headerData.find(record =>
       record[currHeaderKey] ? record : null
-    )[currHeaderKey];
+    );
+    const headerQuestionId = headerRecord.id;
+    const headerOptions = headerRecord[currHeaderKey];
 
     rows.push({
-      html: (
-        <tr>
-          {headerOptions.map(option => (
-            <th>{option.text}</th>
-          ))}
-        </tr>
-      ),
+      html: headerOptions.map(option => <th>{option.text}</th>),
       length: headerOptions.length,
+      optionsLength: headerOptions.length,
+      title: currHeaderKey,
+      questionId: headerQuestionId,
     });
 
     while (it < headerKeys.length - 1) {
       const nextOptionCells = [];
 
       const nextHeaderKey = headerKeys[it + 1];
-      const nextHeaderOptions = headerData.find(record =>
+      const nextHeaderRecord = headerData.find(record =>
         record[nextHeaderKey] ? record : null
-      )[nextHeaderKey];
+      );
+      const nextHeaderQuestionId = nextHeaderRecord.id;
+      const nextHeaderOptions = nextHeaderRecord[nextHeaderKey];
 
       for (let j = 0; j < rows[it].length; j++) {
         nextHeaderOptions.forEach(nextOption => {
@@ -193,15 +282,18 @@ class TableRenderer extends React.Component {
       }
 
       rows.push({
-        html: <tr>{nextOptionCells.map(o => o)}</tr>,
+        html: nextOptionCells.map(o => o),
         length: nextOptionCells.length,
+        optionsLength: nextHeaderOptions.length,
+        title: nextHeaderKey,
+        questionId: nextHeaderQuestionId,
       });
       it++;
     }
 
     this.setState(
       {
-        headersRow: rows,
+        headersRows: rows,
       },
       () => {
         this.updateSpans();
@@ -213,7 +305,7 @@ class TableRenderer extends React.Component {
     if (prevProps.headers !== this.props.headers) {
       let it = 0;
 
-      const rows = [...this.state.headersRow];
+      const rows = [...this.state.headersRows];
       const headerKeys = this.props.headers;
       const headerData = this.props.data;
 
@@ -223,52 +315,57 @@ class TableRenderer extends React.Component {
       }
       if (headerKeys.length === 1) {
         const currHeaderKey = headerKeys[it];
-        const headerOptions = headerData.find(record =>
+        const headerRecord = headerData.find(record =>
           record[currHeaderKey] ? record : null
-        )[currHeaderKey];
+        );
+        const headerQuestionId = headerRecord.id;
+        const headerOptions = headerRecord[currHeaderKey];
 
         rows.push({
-          html: (
-            <tr>
-              {headerOptions.map(option => (
-                <th>{option.text}</th>
-              ))}
-            </tr>
-          ),
+          html: headerOptions.map(option => <th>{option.text}</th>),
           length: headerOptions.length,
+          optionsLength: headerOptions.length,
+          title: currHeaderKey,
+          questionId: headerQuestionId,
         });
       } else {
-        it = this.state.headersRow.length - 1;
+        it = this.state.headersRows.length - 1;
       }
 
       while (it < headerKeys.length - 1) {
         const nextOptionCells = [];
 
         const nextHeaderKey = headerKeys[it + 1];
-        const nextHeaderOptions = headerData.find(record =>
+        const nextHeaderRecord = headerData.find(record =>
           record[nextHeaderKey] ? record : null
-        )[nextHeaderKey];
-        for (let j = 0; j < this.state.headersRow[it].length; j++) {
+        );
+        const nextHeaderQuestionId = nextHeaderRecord.id;
+        const nextHeaderOptions = nextHeaderRecord[nextHeaderKey];
+
+        for (let j = 0; j < this.state.headersRows[it].length; j++) {
           nextHeaderOptions.forEach(nextOption => {
             nextOptionCells.push(<th colSpan="1">{nextOption.text}</th>);
           });
         }
 
         rows.push({
-          html: <tr>{nextOptionCells.map(o => o)}</tr>,
+          html: nextOptionCells.map(o => o),
           length: nextOptionCells.length,
+          optionsLength: nextHeaderOptions.length,
+          title: nextHeaderKey,
+          questionId: nextHeaderQuestionId,
         });
         it++;
       }
 
       this.setState({
-        headersRow: rows,
+        headersRows: rows,
       });
     }
 
     if (
-      JSON.stringify(prevState.headersRow) !==
-        JSON.stringify(this.state.headersRow) &&
+      JSON.stringify(prevState.headersRows) !==
+        JSON.stringify(this.state.headersRows) &&
       this.props.headers.length > 1
     ) {
       this.updateSpans();
@@ -320,6 +417,12 @@ class TableRenderer extends React.Component {
 
     const stubKeys = pivotData.props.stubs;
     const headerKeys = pivotData.props.headers;
+
+    const {headersRows} = this.state;
+    const headerLastRowIndex = headersRows.length - 1;
+    const headersSpanSize =
+      headersRows.length > 0 ? headersRows[headerLastRowIndex].length : 1;
+
     let currKey = '';
 
     return (
@@ -364,19 +467,6 @@ class TableRenderer extends React.Component {
             </React.Fragment>
           )}
 
-          {multiLevelMode && (
-            <tr>
-              <td colSpan="2">
-                {headerKeys.map(headerKey => (
-                  <tr>
-                    <th>{headerKey}</th>
-                  </tr>
-                ))}
-              </td>
-              <td>{this.state.headersRow.map(row => row.html)}</td>
-            </tr>
-          )}
-
           {multiFlatMode && (
             <tr>
               <th colSpan="2">Base</th>
@@ -396,15 +486,40 @@ class TableRenderer extends React.Component {
               })}
             </tr>
           )}
-
-          {multiLevelMode && (
-            <tr>
-              <th colSpan="2">Base</th>
-            </tr>
-          )}
         </thead>
 
         <tbody>
+          {multiLevelMode && (
+            <React.Fragment>
+              {headersRows.map(row => (
+                <tr>
+                  <th colSpan="2">{row.title}</th>
+                  {row.html}
+                </tr>
+              ))}
+
+              <tr>
+                <th className="pvtRowLabel" colSpan="2">
+                  Base
+                </th>
+                {headersRows.length > 0 &&
+                  [...Array(headersRows[headerLastRowIndex].length)].map(
+                    (element, index) => {
+                      return (
+                        <th
+                          className="pvtColLabel"
+                          key={`headerKey${index}`}
+                          colSpan="1"
+                        >
+                          {this.getMultiLevelHeaderBase(index, headersSpanSize)}
+                        </th>
+                      );
+                    }
+                  )}
+              </tr>
+            </React.Fragment>
+          )}
+
           {stubKeys.map((stubKey, i) => {
             const stubEntry = stubData.find(record =>
               record[stubKey] ? record : null
@@ -471,6 +586,19 @@ class TableRenderer extends React.Component {
                           headerAttr
                         );
                       })}
+
+                    {multiLevelMode &&
+                      headersRows.length > 0 &&
+                      [...Array(headersRows[headerLastRowIndex].length)].map(
+                        (element, index) => {
+                          return this.calculateMultiLevelCell(
+                            stubOption,
+                            stubEntry.id,
+                            index,
+                            headersSpanSize
+                          );
+                        }
+                      )}
                   </tr>
                   {multiFlatMode &&
                     [true].map(_ => {
