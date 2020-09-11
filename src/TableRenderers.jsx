@@ -136,7 +136,7 @@ class TableRenderer extends React.Component {
     return total;
   }
 
-  calculateMultiLevelCell(stubEntry, stubId, index, finalRowLength) {
+  calculateMultiLevelCell(stubEntry, stubId, index, finalRowLength, sums) {
     const {userResponses, settings} = this.props;
     const {showPercentage} = settings;
     const rows = [...this.state.headersRows];
@@ -160,6 +160,16 @@ class TableRenderer extends React.Component {
       stubScores: {},
     };
 
+    if (!sums[index]) {
+      sums[index] = {
+        base: 0,
+        stub: 0,
+      };
+    }
+
+    if (sums[index].base > 0) {
+      sums[index].base = 0;
+    }
     userResponses.forEach(response => {
       if (!entry.stubScores[index]) {
         entry.stubScores[index] = {};
@@ -172,14 +182,18 @@ class TableRenderer extends React.Component {
 
       if (checkedValues.length === selectedValues.length) {
         entry.baseScore++;
+        sums[index].base++;
 
         if (!entry.stubScores[index][stubId]) {
           entry.stubScores[index][stubId] = 0;
         }
 
         if (response[stubId] === stubEntry.value) {
+          if (sums[index].stub >= 0) {
+            sums[index].stub += 1;
+          }
+
           entry.stubScore++;
-          entry.stubScores[index][stubId] += 1;
         }
       }
     });
@@ -190,6 +204,28 @@ class TableRenderer extends React.Component {
     }
 
     return <td>{entry.stubScore}</td>;
+  }
+
+  calculateMultiLevelMissingValue(finalRowLength, sums) {
+    const {settings} = this.props;
+    const {showPercentage} = settings;
+
+    const missingValues = [...Array(finalRowLength)].flatMap((_, index) => {
+      if (sums[index]) {
+        const missingRaw = sums[index].base - sums[index].stub;
+
+        if (showPercentage) {
+          const missingValue = Math.round(
+            (missingRaw / sums[index].base) * 100
+          );
+          return missingValue ? missingValue : 0;
+        }
+
+        return missingRaw;
+      }
+    });
+
+    return missingValues ? missingValues : [];
   }
 
   getMultiLevelHeaderBase(index, finalRowLength) {
@@ -288,6 +324,7 @@ class TableRenderer extends React.Component {
         title: nextHeaderKey,
         questionId: nextHeaderQuestionId,
       });
+
       it++;
     }
 
@@ -525,30 +562,33 @@ class TableRenderer extends React.Component {
               record[stubKey] ? record : null
             );
 
+            const sums = {};
+
             return stubEntry[stubKey].map((stubOption, j) => {
               let showStubLabel = true;
 
-              if (j === 0) {
-                headerKeys.map(headerAttr => {
-                  const headerOptions = headerData.find(record =>
-                    record[headerAttr] ? record : null
-                  );
+              if (headerKeys.length > 0)
+                if (j === 0) {
+                  headerKeys.map(headerAttr => {
+                    const headerOptions = headerData.find(record =>
+                      record[headerAttr] ? record : null
+                    );
 
-                  if (headerOptions[headerAttr]) {
-                    headerOptions[headerAttr].forEach(headerOption => {
-                      if (headerOption.stubScores) {
-                        const objs = Object.values(
-                          headerOption.stubScores[headerAttr]
-                        );
+                    if (headerOptions[headerAttr]) {
+                      headerOptions[headerAttr].forEach(headerOption => {
+                        if (headerOption.stubScores) {
+                          const objs = Object.values(
+                            headerOption.stubScores[headerAttr]
+                          );
 
-                        if (objs.length > 0) {
-                          headerOption.stubScores[headerAttr] = {};
+                          if (objs.length > 0) {
+                            headerOption.stubScores[headerAttr] = {};
+                          }
                         }
-                      }
-                    });
-                  }
-                });
-              }
+                      });
+                    }
+                  });
+                }
 
               if (currKey !== stubKey) {
                 currKey = stubKey;
@@ -587,46 +627,81 @@ class TableRenderer extends React.Component {
                         );
                       })}
 
+                    {multiFlatMode &&
+                      [true].map(_ => {
+                        const missingValues = this.calculateMissingValues(
+                          headerData,
+                          headerKeys,
+                          stubEntry.id
+                        );
+                        if (
+                          j === stubEntry[stubKey].length - 1 &&
+                          missingValues.filter(value => value > 0).length > 0
+                        ) {
+                          return (
+                            <tr>
+                              <td></td>
+                              <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                                Missing Values
+                              </th>
+                              {missingValues.map(missingValue => {
+                                return (
+                                  <td>
+                                    {missingValue}
+                                    {this.props.settings.showPercentage && '%'}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        }
+
+                        return null;
+                      })}
+
                     {multiLevelMode &&
                       headersRows.length > 0 &&
                       [...Array(headersRows[headerLastRowIndex].length)].map(
-                        (element, index) => {
+                        (_, index) => {
                           return this.calculateMultiLevelCell(
                             stubOption,
                             stubEntry.id,
                             index,
-                            headersSpanSize
+                            headersSpanSize,
+                            sums
                           );
                         }
                       )}
                   </tr>
-                  {multiFlatMode &&
+
+                  {multiLevelMode &&
                     [true].map(_ => {
-                      const missingValues = this.calculateMissingValues(
-                        headerData,
-                        headerKeys,
-                        stubEntry.id
-                      );
-                      if (
-                        j === stubEntry[stubKey].length - 1 &&
-                        missingValues.filter(value => value > 0).length > 0
-                      ) {
-                        return (
-                          <tr>
-                            <td></td>
-                            <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                              Missing Values
-                            </th>
-                            {missingValues.map(missingValue => {
-                              return (
-                                <td>
-                                  {missingValue}
-                                  {this.props.settings.showPercentage && '%'}
-                                </td>
-                              );
-                            })}
-                          </tr>
+                      if (j === stubEntry[stubKey].length - 1) {
+                        const missingValues = this.calculateMultiLevelMissingValue(
+                          headersSpanSize,
+                          sums
                         );
+
+                        if (
+                          missingValues.filter(value => value > 0).length > 0
+                        ) {
+                          return (
+                            <tr>
+                              <td></td>
+                              <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                                Missing Values
+                              </th>
+                              {missingValues.map(missingValue => {
+                                return (
+                                  <td>
+                                    {missingValue}
+                                    {this.props.settings.showPercentage && '%'}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        }
                       }
 
                       return null;
