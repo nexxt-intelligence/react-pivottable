@@ -2,9 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {PivotData, sortAs, getSort} from './Utilities';
-import PivotTable from './PivotTable';
+import TableRenderers from './TableRenderers';
 import Sortable from 'react-sortablejs';
 import Draggable from 'react-draggable';
+import OptionsMenu from './OptionsMenu';
 
 /* eslint-disable react/prop-types */
 // eslint can't see inherited propTypes!
@@ -12,7 +13,10 @@ import Draggable from 'react-draggable';
 export class DraggableAttribute extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {open: false, filterText: ''};
+    this.state = {
+      open: false,
+      filterText: '',
+    };
   }
 
   toggleValue(value) {
@@ -133,11 +137,6 @@ export class DraggableAttribute extends React.Component {
                       filterName && filterName[x.text] ? '' : 'selected'
                     }
                   >
-                    <a className="pvtOnly" onClick={e => this.selectOnly(e, x)}>
-                      only
-                    </a>
-                    <a className="pvtOnlySpacer">&nbsp;</a>
-
                     {x.text === '' ? null : x.text}
                   </p>
                 );
@@ -242,7 +241,7 @@ export class Dropdown extends React.PureComponent {
   }
 }
 
-class PivotTableUI extends React.PureComponent {
+class PivotTableUI extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -253,7 +252,13 @@ class PivotTableUI extends React.PureComponent {
       attrValuesB: {},
       materializedInput: [],
       materializedInputB: [],
+      tableOptions: {
+        showPercentage: true,
+        multiLevelMode: true,
+      },
     };
+
+    this.toggleTableOption = this.toggleTableOption.bind(this);
   }
 
   componentDidMount() {
@@ -350,6 +355,13 @@ class PivotTableUI extends React.PureComponent {
     this.setState(newState);
   }
 
+  toggleTableOption(optionName) {
+    const tableOptions = this.state.tableOptions;
+    tableOptions[optionName] = !tableOptions[optionName];
+
+    this.setState({tableOptions});
+  }
+
   sendPropUpdate(command) {
     this.props.onChange(update(this.props, command));
   }
@@ -413,6 +425,7 @@ class PivotTableUI extends React.PureComponent {
       type === 'stub'
         ? this.props.stubValueFilter
         : this.props.headerValueFilter;
+
     return (
       <Sortable
         options={{
@@ -452,41 +465,15 @@ class PivotTableUI extends React.PureComponent {
   }
 
   render() {
-    const rendererName =
-      this.props.rendererName in this.props.renderers
-        ? this.props.rendererName
-        : Object.keys(this.props.renderers)[0];
-
     const rendererCell = (
-      <td className="pvtRenderers">
-        <Dropdown
-          current={rendererName}
-          values={Object.keys(this.props.renderers)}
-          open={this.isOpen('renderer')}
-          zIndex={this.isOpen('renderer') ? this.state.maxZIndex + 1 : 1}
-          toggle={() =>
-            this.setState({
-              openDropdown: this.isOpen('renderer') ? false : 'renderer',
-            })
-          }
-          setValue={this.propUpdater('rendererName')}
+      <td className="settings-cell" rowSpan="2">
+        <OptionsMenu
+          moveFilterBoxToTop={this.moveFilterBoxToTop.bind(this)}
+          toggleValue={this.toggleTableOption}
+          options={this.state.tableOptions}
         />
       </td>
     );
-
-    const sortIcons = {
-      key_a_to_z: {
-        rowSymbol: '↕',
-        colSymbol: '↔',
-        next: 'value_a_to_z',
-      },
-      value_a_to_z: {
-        rowSymbol: '↓',
-        colSymbol: '→',
-        next: 'value_z_to_a',
-      },
-      value_z_to_a: {rowSymbol: '↑', colSymbol: '←', next: 'key_a_to_z'},
-    };
 
     const unusedAttrs = Object.keys(this.state.attrValuesB)
       .filter(
@@ -502,7 +489,7 @@ class PivotTableUI extends React.PureComponent {
       unusedAttrs,
       order => this.setState({unusedOrder: order}),
       `pvtAxisContainer pvtUnused ${'pvtHorizList'}`,
-      'stub'
+      'header'
     );
 
     const headerAttrs = this.props.headers.filter(
@@ -530,26 +517,25 @@ class PivotTableUI extends React.PureComponent {
       'stub'
     );
 
-    const outputCell = (
-      <td className="pvtOutput">
-        <PivotTable {...this.props} userResponses={this.props.userResponses} />
-      </td>
+    const outputCells = (
+      <TableRenderers
+        {...this.props}
+        settings={this.state.tableOptions}
+        multiLevelMode={this.state.tableOptions.multiLevelMode}
+      />
     );
 
     return (
       <table className="pvtUi">
         <tbody onClick={() => this.setState({openDropdown: false})}>
           <tr>
-            <td></td>
+            {rendererCell}
             {unusedAttrsCell}
           </tr>
-          <tr>
-            <td></td>
-            {headerAttrsCell}
-          </tr>
+          <tr>{headerAttrsCell}</tr>
           <tr>
             {stubAttrsCell}
-            {outputCell}
+            {outputCells}
           </tr>
         </tbody>
       </table>
@@ -557,7 +543,7 @@ class PivotTableUI extends React.PureComponent {
   }
 }
 
-PivotTableUI.propTypes = Object.assign({}, PivotTable.propTypes, {
+PivotTableUI.propTypes = Object.assign({}, PivotData.propTypes, {
   onChange: PropTypes.func.isRequired,
   hiddenAttributes: PropTypes.arrayOf(PropTypes.string),
   hiddenFromAggregators: PropTypes.arrayOf(PropTypes.string),
@@ -566,7 +552,7 @@ PivotTableUI.propTypes = Object.assign({}, PivotTable.propTypes, {
   menuLimit: PropTypes.number,
 });
 
-PivotTableUI.defaultProps = Object.assign({}, PivotTable.defaultProps, {
+PivotTableUI.defaultProps = Object.assign({}, PivotData.defaultProps, {
   hiddenAttributes: [],
   hiddenFromAggregators: [],
   hiddenFromDragDrop: [],
