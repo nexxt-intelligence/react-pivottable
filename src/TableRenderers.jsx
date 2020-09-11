@@ -627,38 +627,6 @@ class TableRenderer extends React.Component {
                         );
                       })}
 
-                    {multiFlatMode &&
-                      [true].map(_ => {
-                        const missingValues = this.calculateMissingValues(
-                          headerData,
-                          headerKeys,
-                          stubEntry.id
-                        );
-                        if (
-                          j === stubEntry[stubKey].length - 1 &&
-                          missingValues.filter(value => value > 0).length > 0
-                        ) {
-                          return (
-                            <tr>
-                              <td></td>
-                              <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                                Missing Values
-                              </th>
-                              {missingValues.map(missingValue => {
-                                return (
-                                  <td>
-                                    {missingValue}
-                                    {this.props.settings.showPercentage && '%'}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        }
-
-                        return null;
-                      })}
-
                     {multiLevelMode &&
                       headersRows.length > 0 &&
                       [...Array(headersRows[headerLastRowIndex].length)].map(
@@ -673,6 +641,38 @@ class TableRenderer extends React.Component {
                         }
                       )}
                   </tr>
+
+                  {multiFlatMode &&
+                    [true].map(_ => {
+                      const missingValues = this.calculateMissingValues(
+                        headerData,
+                        headerKeys,
+                        stubEntry.id
+                      );
+                      if (
+                        j === stubEntry[stubKey].length - 1 &&
+                        missingValues.filter(value => value > 0).length > 0
+                      ) {
+                        return (
+                          <tr>
+                            <td></td>
+                            <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                              Missing Values
+                            </th>
+                            {missingValues.map(missingValue => {
+                              return (
+                                <td>
+                                  {missingValue}
+                                  {this.props.settings.showPercentage && '%'}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      }
+
+                      return null;
+                    })}
 
                   {multiLevelMode &&
                     [true].map(_ => {
