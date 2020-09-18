@@ -449,26 +449,27 @@ var TableRenderer = function (_React$Component) {
           });
           var nextHeaderQuestionId = nextHeaderRecord.id;
           var nextHeaderOptions = nextHeaderRecord[nextHeaderKey];
+          if (_this3.state.headersRows[it]) {
+            for (var j = 0; j < _this3.state.headersRows[it].length; j++) {
+              nextHeaderOptions.forEach(function (nextOption) {
+                nextOptionCells.push(_react2.default.createElement(
+                  'th',
+                  { colSpan: '1' },
+                  nextOption.text
+                ));
+              });
+            }
 
-          for (var j = 0; j < _this3.state.headersRows[it].length; j++) {
-            nextHeaderOptions.forEach(function (nextOption) {
-              nextOptionCells.push(_react2.default.createElement(
-                'th',
-                { colSpan: '1' },
-                nextOption.text
-              ));
+            rows.push({
+              html: nextOptionCells.map(function (o) {
+                return o;
+              }),
+              length: nextOptionCells.length,
+              optionsLength: nextHeaderOptions.length,
+              title: nextHeaderKey,
+              questionId: nextHeaderQuestionId
             });
           }
-
-          rows.push({
-            html: nextOptionCells.map(function (o) {
-              return o;
-            }),
-            length: nextOptionCells.length,
-            optionsLength: nextHeaderOptions.length,
-            title: nextHeaderKey,
-            questionId: nextHeaderQuestionId
-          });
           it++;
         };
 

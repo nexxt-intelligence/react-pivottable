@@ -378,20 +378,21 @@ class TableRenderer extends React.Component {
         );
         const nextHeaderQuestionId = nextHeaderRecord.id;
         const nextHeaderOptions = nextHeaderRecord[nextHeaderKey];
+        if (this.state.headersRows[it]) {
+          for (let j = 0; j < this.state.headersRows[it].length; j++) {
+            nextHeaderOptions.forEach(nextOption => {
+              nextOptionCells.push(<th colSpan="1">{nextOption.text}</th>);
+            });
+          }
 
-        for (let j = 0; j < this.state.headersRows[it].length; j++) {
-          nextHeaderOptions.forEach(nextOption => {
-            nextOptionCells.push(<th colSpan="1">{nextOption.text}</th>);
+          rows.push({
+            html: nextOptionCells.map(o => o),
+            length: nextOptionCells.length,
+            optionsLength: nextHeaderOptions.length,
+            title: nextHeaderKey,
+            questionId: nextHeaderQuestionId,
           });
         }
-
-        rows.push({
-          html: nextOptionCells.map(o => o),
-          length: nextOptionCells.length,
-          optionsLength: nextHeaderOptions.length,
-          title: nextHeaderKey,
-          questionId: nextHeaderQuestionId,
-        });
         it++;
       }
 
