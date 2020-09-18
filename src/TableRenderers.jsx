@@ -346,7 +346,10 @@ class TableRenderer extends React.Component {
       const headerKeys = this.props.headers;
       const headerData = this.props.data;
 
-      if (this.props.headers.length <= prevProps.headers.length) {
+      if (
+        this.props.multiLevelMode &&
+        this.props.headers.length <= prevProps.headers.length
+      ) {
         this.refreshHeaders();
         return;
       }
