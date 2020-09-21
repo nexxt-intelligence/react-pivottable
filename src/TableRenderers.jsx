@@ -2,46 +2,6 @@ import React from 'react';
 import {PivotData} from './Utilities';
 
 /* eslint-disable react/prop-types */
-
-const spanSize = function(arr, i, j) {
-  let x;
-  if (i !== 0) {
-    let asc, end;
-    let noDraw = true;
-    for (
-      x = 0, end = j, asc = end >= 0;
-      asc ? x <= end : x >= end;
-      asc ? x++ : x--
-    ) {
-      if (arr[i - 1][x] !== arr[i][x]) {
-        noDraw = false;
-      }
-    }
-    if (noDraw) {
-      return -1;
-    }
-  }
-  let len = 0;
-  while (i + len < arr.length) {
-    let asc1, end1;
-    let stop = false;
-    for (
-      x = 0, end1 = j, asc1 = end1 >= 0;
-      asc1 ? x <= end1 : x >= end1;
-      asc1 ? x++ : x--
-    ) {
-      if (arr[i][x] !== arr[i + len][x]) {
-        stop = true;
-      }
-    }
-    if (stop) {
-      break;
-    }
-    len++;
-  }
-  return len;
-};
-
 class TableRenderer extends React.Component {
   constructor(props) {
     super(props);
@@ -339,6 +299,16 @@ class TableRenderer extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if (
+      prevProps.data !== this.props.data ||
+      (this.props.multiLevelMode !== prevProps.multiLevelMode &&
+        !this.props.multiLevelMode)
+    ) {
+      this.setState({
+        headersRows: [],
+      });
+    }
+
     if (prevProps.headers !== this.props.headers) {
       let it = 0;
 
@@ -348,11 +318,13 @@ class TableRenderer extends React.Component {
 
       if (
         this.props.multiLevelMode &&
-        this.props.headers.length <= prevProps.headers.length
+        this.props.headers.length <= prevProps.headers.length &&
+        this.props.headers.length > 0
       ) {
         this.refreshHeaders();
         return;
       }
+
       if (headerKeys.length === 1) {
         const currHeaderKey = headerKeys[it];
         const headerRecord = headerData.find(record =>

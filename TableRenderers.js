@@ -23,40 +23,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 /* eslint-disable react/prop-types */
-
-var spanSize = function spanSize(arr, i, j) {
-  var x = void 0;
-  if (i !== 0) {
-    var asc = void 0,
-        end = void 0;
-    var noDraw = true;
-    for (x = 0, end = j, asc = end >= 0; asc ? x <= end : x >= end; asc ? x++ : x--) {
-      if (arr[i - 1][x] !== arr[i][x]) {
-        noDraw = false;
-      }
-    }
-    if (noDraw) {
-      return -1;
-    }
-  }
-  var len = 0;
-  while (i + len < arr.length) {
-    var asc1 = void 0,
-        end1 = void 0;
-    var stop = false;
-    for (x = 0, end1 = j, asc1 = end1 >= 0; asc1 ? x <= end1 : x >= end1; asc1 ? x++ : x--) {
-      if (arr[i][x] !== arr[i + len][x]) {
-        stop = true;
-      }
-    }
-    if (stop) {
-      break;
-    }
-    len++;
-  }
-  return len;
-};
-
 var TableRenderer = function (_React$Component) {
   _inherits(TableRenderer, _React$Component);
 
@@ -404,6 +370,12 @@ var TableRenderer = function (_React$Component) {
     value: function componentDidUpdate(prevProps, prevState) {
       var _this3 = this;
 
+      if (prevProps.data !== this.props.data || this.props.multiLevelMode !== prevProps.multiLevelMode && !this.props.multiLevelMode) {
+        this.setState({
+          headersRows: []
+        });
+      }
+
       if (prevProps.headers !== this.props.headers) {
         var it = 0;
 
@@ -411,10 +383,11 @@ var TableRenderer = function (_React$Component) {
         var headerKeys = this.props.headers;
         var headerData = this.props.data;
 
-        if (this.props.multiLevelMode && this.props.headers.length <= prevProps.headers.length) {
+        if (this.props.multiLevelMode && this.props.headers.length <= prevProps.headers.length && this.props.headers.length > 0) {
           this.refreshHeaders();
           return;
         }
+
         if (headerKeys.length === 1) {
           var currHeaderKey = headerKeys[it];
           var headerRecord = headerData.find(function (record) {

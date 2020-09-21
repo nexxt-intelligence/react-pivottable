@@ -363,9 +363,15 @@ var PivotTableUI = function (_React$Component2) {
   }, {
     key: 'componentDidUpdate',
     value: function componentDidUpdate(prevProps) {
-      if (prevProps.data !== this.props.data && this.state.multiLevelMode) {
-        console.log('change data');
-        this.setState({ multiLevelMode: false });
+      if (prevProps.data !== this.props.data) {
+        this.setState(function (prevState) {
+          var newTableOptions = prevState.tableOptions;
+          newTableOptions.multiLevelMode = false;
+
+          return {
+            tableOptions: newTableOptions
+          };
+        });
       }
 
       if (Array.isArray(this.props.data)) {

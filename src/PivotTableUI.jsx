@@ -270,9 +270,15 @@ class PivotTableUI extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.data !== this.props.data && this.state.multiLevelMode) {
-      console.log('change data');
-      this.setState({multiLevelMode: false});
+    if (prevProps.data !== this.props.data) {
+      this.setState(prevState => {
+        const newTableOptions = prevState.tableOptions;
+        newTableOptions.multiLevelMode = false;
+
+        return {
+          tableOptions: newTableOptions,
+        };
+      });
     }
 
     if (Array.isArray(this.props.data)) {

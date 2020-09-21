@@ -5,17 +5,19 @@ import PivotTableUI from '../src/PivotTableUI';
 import '../src/pivottable.css';
 import Papa from 'papaparse';
 import {data, responses} from './data';
+import {data2} from './data2';
 
-function PivotTableUISmartWrapper() {
-  const [tableData, setTableData] = useState(data);
-  const [userResponses] = useState(responses);
+function PivotTableUISmartWrapper(props) {
+  const [tableData, setTableData] = useState(props.data);
+  const [userResponses] = useState(props.responses);
 
   const [questionTitles, setQuestionTitles] = useState([]);
 
   useEffect(() => {
-    const titles = data.map(record => Object.keys(record)[0]);
+    const titles = props.data.map(record => Object.keys(record)[0]);
+    setTableData(props.data);
     setQuestionTitles(titles);
-  }, []);
+  }, [props.data]);
 
   return (
     <PivotTableUI
@@ -29,8 +31,11 @@ function PivotTableUISmartWrapper() {
 }
 
 export default class App extends React.Component {
-  componentWillMount() {
-    this.setState({
+  constructor(props) {
+    super(props);
+    this.state = {
+      currData: data,
+      currResponses: responses,
       mode: 'demo',
       filename: 'Sample Dataset: Tips',
       pivotState: {
@@ -54,7 +59,7 @@ export default class App extends React.Component {
           },
         },
       },
-    });
+    };
   }
 
   onDrop(files) {
@@ -98,9 +103,24 @@ export default class App extends React.Component {
       <div>
         <div className="row">
           <h2 className="text-center">{this.state.filename}</h2>
-          <br />
+          <button
+            onClick={() => {
+              if (this.state.currData === data) {
+                this.setState({currData: data2});
+              } else {
+                this.setState({currData: data});
+              }
+            }}
+            style={{margin: '2rem'}}
+          >
+            Switch data file
+          </button>
 
-          <PivotTableUISmartWrapper {...this.state.pivotState} />
+          <PivotTableUISmartWrapper
+            {...this.state.pivotState}
+            data={this.state.currData}
+            responses={this.state.currResponses}
+          />
         </div>
       </div>
     );
