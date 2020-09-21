@@ -270,7 +270,10 @@ class PivotTableUI extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.data !== this.props.data) {
+    if (
+      prevProps.data !== this.props.data ||
+      prevProps.crossTabID !== this.props.crossTabID
+    ) {
       this.setState(prevState => {
         const newTableOptions = prevState.tableOptions;
         newTableOptions.multiLevelMode = false;
