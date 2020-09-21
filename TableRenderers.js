@@ -374,6 +374,9 @@ var TableRenderer = function (_React$Component) {
         this.setState({
           headersRows: []
         });
+      } else if (this.props.multiLevelMode !== prevProps.multiLevelMode && this.props.multiLevelMode) {
+        this.refreshHeaders();
+        return;
       }
 
       if (prevProps.headers !== this.props.headers) {
