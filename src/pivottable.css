@@ -176,7 +176,7 @@ table.pvtTable tbody tr td {
   position: relative;
   width: 210px;
   box-sizing: border-box;
-  background: white;
+  background: #ffffff;
 }
 
 .pvtDropdownCurrentOpen {
@@ -184,7 +184,7 @@ table.pvtTable tbody tr td {
 }
 
 .pvtDropdownMenu {
-  background: white;
+  background: #ffffff;
   position: absolute;
   width: 100%;
   margin-top: -1px;
@@ -254,6 +254,8 @@ table.pvtTable tbody tr td {
   -khtml-user-select: none;
   -ms-user-select: none;
   background-color: transparent;
+  display: flex;
+  align-items: center;
 }
 
 .pvtTriangle {
@@ -262,7 +264,7 @@ table.pvtTable tbody tr td {
 }
 
 .pvtHorizList li {
-  background-color: white;
+  background-color: #ffffff;
   margin: 5px;
   border: 1px solid #ffffff;
   box-sizing: border-box;
@@ -372,6 +374,10 @@ table.pvtTable tbody tr td {
   max-height: 30vh;
 }
 
+.pvtCheckContainer .pvtCheckWrapper {
+  cursor: pointer;
+}
+
 .pvtCheckContainer .pvtCheckItem {
   position: relative;
   cursor: pointer;
@@ -400,7 +406,7 @@ table.pvtTable tbody tr td {
 .pvtCheckItem input:checked ~ .checkmark:after {
   display: block;
 }
-/* When the checkbox is checked, add a blue background */
+/* When the checkbox is checked, add a grey background */
 .pvtCheckItem input:checked ~ .checkmark {
   background-color: #757575;
 }
@@ -439,13 +445,13 @@ table.pvtTable tbody tr td {
   border: 2px solid #1c45d9;
   border-radius: 6px;
   background-color: #2d67cb;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   padding: 0.5rem 2rem;
 }
 
 .settings-conrol > .pvtAttr > .pvtTriangle {
-  color: white;
+  color: #ffffff;
   margin-left: 1.5rem;
 }
 
@@ -458,11 +464,11 @@ table.pvtTable tbody tr td {
 }
 
 .pvtDots:after {
-  content: '\2026';
+  content: '\22EF';
   cursor: pointer;
   vertical-align: text-bottom;
   margin-left: 10px;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: bold;
 }
 

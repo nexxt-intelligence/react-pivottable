@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import {PivotData} from './Utilities';
 
 /* eslint-disable react/prop-types */

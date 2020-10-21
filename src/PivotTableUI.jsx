@@ -87,17 +87,17 @@ export class DraggableAttribute extends React.Component {
               {shown.map(x => {
                 const filterName = this.props.valueFilter[this.props.name];
                 return (
-                  <div>
-                    <label
-                      class="pvtCheckItem"
-                      onChange={() => this.toggleValue(x)}
-                    >
+                  <div
+                    className="pvtCheckWrapper"
+                    onClick={() => this.toggleValue(x)}
+                  >
+                    <label className="pvtCheckItem">
                       <input
                         type="checkbox"
                         defaultChecked={true}
                         checked={filterName && !filterName[x.text]}
                       />
-                      <span class="checkmark"></span>
+                      <span className="checkmark"></span>
                       {x.text === '' ? null : x.text}
                     </label>
                   </div>
