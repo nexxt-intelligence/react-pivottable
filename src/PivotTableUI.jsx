@@ -83,62 +83,24 @@ export class DraggableAttribute extends React.Component {
           {showMenu || <p>(too many values to show)</p>}
 
           {showMenu && (
-            <p>
-              <input
-                type="text"
-                placeholder="Filter values"
-                className="pvtSearch"
-                value={this.state.filterText}
-                onChange={e =>
-                  this.setState({
-                    filterText: e.target.value,
-                  })
-                }
-              />
-              <br />
-              <a
-                role="button"
-                className="pvtButton"
-                onClick={() => {
-                  this.props.removeValuesFromFilter(
-                    this.props.name,
-                    options.filter(this.matchesFilter.bind(this)),
-                    this.props.type
-                  );
-                }}
-              >
-                Select {values.length === shown.length ? 'All' : shown.length}
-              </a>{' '}
-              <a
-                role="button"
-                className="pvtButton"
-                onClick={() =>
-                  this.props.addValuesToFilter(
-                    this.props.name,
-                    options.filter(this.matchesFilter.bind(this)),
-                    this.props.type
-                  )
-                }
-              >
-                Deselect {values.length === shown.length ? 'All' : shown.length}
-              </a>
-            </p>
-          )}
-
-          {showMenu && (
             <div className="pvtCheckContainer">
               {shown.map(x => {
                 const filterName = this.props.valueFilter[this.props.name];
                 return (
-                  <p
-                    key={x}
-                    onClick={() => this.toggleValue(x)}
-                    className={
-                      filterName && filterName[x.text] ? '' : 'selected'
-                    }
-                  >
-                    {x.text === '' ? null : x.text}
-                  </p>
+                  <div>
+                    <label
+                      class="pvtCheckItem"
+                      onChange={() => this.toggleValue(x)}
+                    >
+                      <input
+                        type="checkbox"
+                        defaultChecked={true}
+                        checked={filterName && !filterName[x.text]}
+                      />
+                      <span class="checkmark"></span>
+                      {x.text === '' ? null : x.text}
+                    </label>
+                  </div>
                 );
               })}
             </div>
@@ -161,14 +123,12 @@ export class DraggableAttribute extends React.Component {
     return (
       <li data-id={this.props.name}>
         <span className={'pvtAttr ' + filtered}>
-          {this.props.name}
+          <span className="pvtHandle"></span>
+          {this.props.name}{' '}
           <span
-            className="pvtTriangle"
+            className="pvtDots"
             onClick={this.toggleFilterBox.bind(this)}
-          >
-            {' '}
-            ▾
-          </span>
+          ></span>
         </span>
 
         {this.state.open ? this.getFilterBox() : null}
