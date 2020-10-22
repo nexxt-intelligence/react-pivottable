@@ -1,7 +1,8 @@
 .pvtUi {
-  color: #2a3f5f;
+  color: #757575;
   font-family: Verdana;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 5px;
 }
 .pvtUi select {
   user-select: none;
@@ -16,15 +17,34 @@
 }
 
 table.pvtTable {
-  font-size: 8pt;
+  font-size: 12px;
   text-align: left;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 20px 15px;
   font-family: Verdana;
+  background: #fdfdfd;
+  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  padding: 10px 20px;
 }
+
+table.pvtTable tbody {
+  box-shadow: 4px 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+table.pvtTable tbody.separator {
+  box-shadow: none;
+}
+
+table.pvtTable tbody.separator:after {
+  height: 1em;
+  display: table-row;
+  content: '';
+}
+
 table.pvtTable thead tr th,
 table.pvtTable tbody tr th {
-  background-color: #ebf0f8;
-  border: 1px solid #c8d4e3;
   font-size: 8pt;
   padding: 5px;
 }
@@ -32,17 +52,69 @@ table.pvtTable tbody tr th {
 table.pvtTable .pvtColLabel {
   text-align: center;
 }
+
+table.pvtTable .pvtColLabel.title {
+  border-bottom: 0.5px solid #757575;
+  font-family: Arial;
+  font-style: normal;
+  font-weight: bold;
+  text-transform: capitalize;
+  font-size: 14px;
+  line-height: 16px;
+  color: #757575;
+  padding: 10px;
+}
+
+table.pvtTable .pvtColLabel.subtitle {
+  font-weight: normal;
+  font-size: 14px;
+  color: #757575;
+}
+
+table.pvtTable .base--mode {
+  box-shadow: 4px 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  height: 50px;
+}
+
+table.pvtTable .row--handler:after {
+  content: '\283F';
+  cursor: move;
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+table.pvtTable th.title {
+  font-family: Arial;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  text-transform: capitalize;
+  line-height: 21px;
+  color: #757575;
+}
+
+table.pvtTable .pvtRowLabel.subtitle {
+  font-family: Arial;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 16px;
+  display: flex;
+  align-items: center;
+  color: #757575;
+}
+
 table.pvtTable .pvtTotalLabel {
   text-align: right;
 }
 
 table.pvtTable tbody tr td {
-  color: #2a3f5f;
+  color: #757575;
   padding: 5px;
-  background-color: #fff;
-  border: 1px solid #c8d4e3;
   vertical-align: top;
-  text-align: right;
+  text-align: center;
 }
 
 .pvtTotal,
@@ -66,11 +138,15 @@ table.pvtTable tbody tr td {
 
 .pvtAxisContainer,
 .pvtVals {
-  border: 1px solid #a2b1c6;
-  background: #f2f5fa;
   padding: 5px;
   min-width: 20px;
   min-height: 20px;
+}
+
+.pvtAxisContainer.pvtUnused {
+  background-color: #ededed;
+  border-radius: 3px;
+  text-transform: capitalize;
 }
 
 .pvtRenderers {
@@ -100,7 +176,7 @@ table.pvtTable tbody tr td {
   position: relative;
   width: 210px;
   box-sizing: border-box;
-  background: white;
+  background: #ffffff;
 }
 
 .pvtDropdownCurrentOpen {
@@ -108,7 +184,7 @@ table.pvtTable tbody tr td {
 }
 
 .pvtDropdownMenu {
-  background: white;
+  background: #ffffff;
   position: absolute;
   width: 100%;
   margin-top: -1px;
@@ -123,6 +199,7 @@ table.pvtTable tbody tr td {
   font-size: 12px;
   text-align: left;
 }
+
 .pvtDropdownActiveValue {
   background: #ebf0f8;
 }
@@ -139,12 +216,14 @@ table.pvtTable tbody tr td {
 }
 
 .pvtCols {
-  background-color: #fbfcfd;
-  height: 35px;
+  background-color: #d8e4f8;
+  border-radius: 3px;
+  height: 50px;
+  text-transform: capitalize;
 }
 
 .pvtAxisContainer li {
-  padding: 8px 6px;
+  padding: 6px;
   list-style-type: none;
   cursor: move;
 }
@@ -161,8 +240,9 @@ table.pvtTable tbody tr td {
 
 .pvtAxisContainer li span.pvtAttr {
   -webkit-text-size-adjust: 100%;
+  font-size: 12px;
+  font-weight: bold;
   background: #f3f6fa;
-  border: 1px solid #c8d4e3;
   padding: 2px 5px;
   white-space: nowrap;
   -webkit-border-radius: 5px;
@@ -173,6 +253,9 @@ table.pvtTable tbody tr td {
   -moz-user-select: none;
   -khtml-user-select: none;
   -ms-user-select: none;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
 }
 
 .pvtTriangle {
@@ -181,14 +264,17 @@ table.pvtTable tbody tr td {
 }
 
 .pvtHorizList li {
+  background-color: #ffffff;
+  margin: 5px;
+  border: 1px solid #ffffff;
+  box-sizing: border-box;
+  border-radius: 3px;
   display: inline-block;
 }
+
 .pvtVertList {
   vertical-align: top;
-}
-
-.pvtFilteredAttribute {
-  font-style: italic;
+  display: none;
 }
 
 .sortable-chosen .pvtFilterBox {
@@ -236,7 +322,6 @@ table.pvtTable tbody tr td {
 }
 
 .pvtFilterBox input {
-  border: 1px solid #c8d4e3;
   border-radius: 5px;
   color: #506784;
   padding: 0 3px;
@@ -264,7 +349,9 @@ table.pvtTable tbody tr td {
 }
 
 .pvtFilterBox h4 {
-  margin: 15px;
+  padding-left: 15px;
+  text-align: left;
+  margin: 10px 15px 15px 15px;
 }
 .pvtFilterBox p {
   margin: 10px auto;
@@ -285,19 +372,43 @@ table.pvtTable tbody tr td {
   overflow-y: scroll;
   width: 100%;
   max-height: 30vh;
-  border-top: 1px solid #dfe8f3;
 }
 
-.pvtCheckContainer p {
-  margin: 0;
-  margin-bottom: 1px;
-  padding: 3px;
-  cursor: default;
-  padding-left: 2rem;
+.pvtCheckContainer .pvtCheckWrapper {
+  cursor: pointer;
 }
 
-.pvtCheckContainer p.selected {
-  background: #ebf0f8;
+.pvtCheckContainer .pvtCheckItem {
+  position: relative;
+  cursor: pointer;
+  padding-left: 35px;
+  margin: 12px 0;
+  font-weight: normal;
+}
+
+.pvtCheckContainer .pvtCheckItem input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+.pvtCheckContainer .pvtCheckItem .checkmark {
+  position: absolute;
+  top: 2px;
+  left: 10px;
+  height: 15px;
+  width: 15px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.pvtCheckItem input:checked ~ .checkmark:after {
+  display: block;
+}
+/* When the checkbox is checked, add a grey background */
+.pvtCheckItem input:checked ~ .checkmark {
+  background-color: #757575;
 }
 
 .pvtOnly {
@@ -315,13 +426,6 @@ table.pvtTable tbody tr td {
   float: left;
 }
 
-.pvtCheckContainer p:hover .pvtOnly {
-  display: block;
-}
-.pvtCheckContainer p:hover .pvtOnlySpacer {
-  display: none;
-}
-
 .pvtRendererArea {
   padding: 5px;
 }
@@ -330,6 +434,7 @@ table.pvtTable tbody tr td {
   background-color: #f2f5fa;
   border: 1px solid #a2b1c6;
   text-align: center;
+  display: none;
 }
 
 .settings-conrol {
@@ -340,14 +445,31 @@ table.pvtTable tbody tr td {
   border: 2px solid #1c45d9;
   border-radius: 6px;
   background-color: #2d67cb;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   padding: 0.5rem 2rem;
 }
 
 .settings-conrol > .pvtAttr > .pvtTriangle {
-  color: white;
+  color: #ffffff;
   margin-left: 1.5rem;
+}
+
+.pvtHandle:after {
+  content: '\283F';
+  cursor: move;
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.pvtDots:after {
+  content: '\22EF';
+  cursor: pointer;
+  vertical-align: text-bottom;
+  margin-left: 10px;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 .cell-placeholder {

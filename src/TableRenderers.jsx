@@ -458,7 +458,7 @@ class TableRenderer extends React.Component {
 
                   return (
                     <th
-                      className="pvtColLabel"
+                      className="pvtColLabel title"
                       key={`headerKeyTitle${i}`}
                       colSpan={headerEntries.length}
                     >
@@ -476,7 +476,10 @@ class TableRenderer extends React.Component {
 
                   return headerEntries.map((headerEntry, i) => {
                     return (
-                      <th className="pvtColLabel" key={`headerKey${i}`}>
+                      <th
+                        className="pvtColLabel subtitle"
+                        key={`headerKey${i}`}
+                      >
                         {headerEntry.text}
                       </th>
                     );
@@ -487,8 +490,9 @@ class TableRenderer extends React.Component {
           )}
 
           {multiFlatMode && (
-            <tr>
-              <th colSpan="2">Base</th>
+            <tr className="base--mode">
+              <th className="row--handler"></th>
+              <th className="title">Base</th>
               {headerKeys.map(headerAttr => {
                 const headerFullEntry = headerData.find(record =>
                   record[headerAttr] ? record : null
@@ -507,8 +511,7 @@ class TableRenderer extends React.Component {
           )}
         </thead>
 
-        <tbody>
-          {multiLevelMode && (
+        {/* {multiLevelMode && (
             <React.Fragment>
               {headersRows.map(row => (
                 <tr>
@@ -537,162 +540,171 @@ class TableRenderer extends React.Component {
                   )}
               </tr>
             </React.Fragment>
-          )}
+          )} */}
+        {stubKeys.map((stubKey, i) => {
+          const stubEntry = stubData.find(record =>
+            record[stubKey] ? record : null
+          );
 
-          {stubKeys.map((stubKey, i) => {
-            const stubEntry = stubData.find(record =>
-              record[stubKey] ? record : null
-            );
+          const sums = {};
 
-            const sums = {};
+          return (
+            <React.Fragment>
+              <tbody>
+                {stubEntry[stubKey].map((stubOption, j) => {
+                  let showStubLabel = true;
 
-            return stubEntry[stubKey].map((stubOption, j) => {
-              let showStubLabel = true;
-
-              if (headerKeys.length > 0)
-                if (j === 0) {
-                  headerKeys.map(headerAttr => {
-                    const headerOptions = headerData.find(record =>
-                      record[headerAttr] ? record : null
-                    );
-
-                    if (headerOptions[headerAttr]) {
-                      headerOptions[headerAttr].forEach(headerOption => {
-                        if (headerOption.stubScores) {
-                          const objs = Object.values(
-                            headerOption.stubScores[headerAttr]
-                          );
-
-                          if (objs.length > 0) {
-                            headerOption.stubScores[headerAttr] = {};
-                          }
-                        }
-                      });
-                    }
-                  });
-                }
-
-              if (currKey !== stubKey) {
-                currKey = stubKey;
-              } else {
-                showStubLabel = false;
-              }
-
-              const qLabelRowSpan = stubEntry[stubKey].length;
-
-              return (
-                <React.Fragment>
-                  <tr key={`stubKeyRow${i}`}>
-                    {showStubLabel && (
-                      <th
-                        key={`stubKeyLabel2${i}-${j}`}
-                        rowSpan={qLabelRowSpan}
-                      >
-                        {stubKey}
-                      </th>
-                    )}
-                    <th key={`stubKeyLabel${i}-${j}`} className="pvtRowLabel">
-                      {stubOption.text}
-                    </th>
-
-                    {multiFlatMode &&
+                  if (headerKeys.length > 0)
+                    if (j === 0) {
                       headerKeys.map(headerAttr => {
-                        const headerEntry = headerData.find(record =>
+                        const headerOptions = headerData.find(record =>
                           record[headerAttr] ? record : null
                         );
 
-                        return this.calculateCell(
-                          stubOption,
-                          stubEntry.id,
-                          headerEntry,
-                          headerAttr
-                        );
-                      })}
-
-                    {multiLevelMode &&
-                      headersRows.length > 0 &&
-                      [...Array(headersRows[headerLastRowIndex].length)].map(
-                        (_, index) => {
-                          return this.calculateMultiLevelCell(
-                            stubOption,
-                            stubEntry.id,
-                            index,
-                            headersSpanSize,
-                            sums
-                          );
-                        }
-                      )}
-                  </tr>
-
-                  {multiFlatMode &&
-                    [true].map(_ => {
-                      const missingValues = this.calculateMissingValues(
-                        headerData,
-                        headerKeys,
-                        stubEntry.id
-                      );
-                      if (
-                        j === stubEntry[stubKey].length - 1 &&
-                        missingValues.filter(value => value > 0).length > 0
-                      ) {
-                        return (
-                          <tr>
-                            <td></td>
-                            <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                              Missing Values
-                            </th>
-                            {missingValues.map(missingValue => {
-                              return (
-                                <td>
-                                  {missingValue}
-                                  {this.props.settings.showPercentage && '%'}
-                                </td>
+                        if (headerOptions[headerAttr]) {
+                          headerOptions[headerAttr].forEach(headerOption => {
+                            if (headerOption.stubScores) {
+                              const objs = Object.values(
+                                headerOption.stubScores[headerAttr]
                               );
-                            })}
-                          </tr>
-                        );
-                      }
 
-                      return null;
-                    })}
-
-                  {multiLevelMode &&
-                    [true].map(_ => {
-                      if (j === stubEntry[stubKey].length - 1) {
-                        const missingValues = this.calculateMultiLevelMissingValue(
-                          headersSpanSize,
-                          sums
-                        );
-
-                        if (
-                          missingValues.filter(value => value > 0).length > 0
-                        ) {
-                          return (
-                            <tr>
-                              <td></td>
-                              <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                                Missing Values
-                              </th>
-                              {missingValues.map(missingValue => {
-                                return (
-                                  <td>
-                                    {missingValue}
-                                    {this.props.settings.showPercentage && '%'}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
+                              if (objs.length > 0) {
+                                headerOption.stubScores[headerAttr] = {};
+                              }
+                            }
+                          });
                         }
-                      }
+                      });
+                    }
 
-                      return null;
-                    })}
-                </React.Fragment>
-              );
-            });
-          })}
-        </tbody>
+                  if (currKey !== stubKey) {
+                    currKey = stubKey;
+                  } else {
+                    showStubLabel = false;
+                  }
+
+                  return (
+                    <React.Fragment>
+                      {!j && (
+                        <tr>
+                          <th className="row--handler"></th>
+                          <th className="title">{stubKey}</th>
+                        </tr>
+                      )}
+
+                      <tr key={`stubKeyRow${i}`}>
+                        <th></th>
+                        <th
+                          key={`stubKeyLabel${i}-${j}`}
+                          className="pvtRowLabel subtitle"
+                        >
+                          {stubOption.text}
+                        </th>
+
+                        {multiFlatMode &&
+                          headerKeys.map(headerAttr => {
+                            const headerEntry = headerData.find(record =>
+                              record[headerAttr] ? record : null
+                            );
+
+                            return this.calculateCell(
+                              stubOption,
+                              stubEntry.id,
+                              headerEntry,
+                              headerAttr
+                            );
+                          })}
+
+                        {multiLevelMode &&
+                          headersRows.length > 0 &&
+                          [
+                            ...Array(headersRows[headerLastRowIndex].length),
+                          ].map((_, index) => {
+                            return this.calculateMultiLevelCell(
+                              stubOption,
+                              stubEntry.id,
+                              index,
+                              headersSpanSize,
+                              sums
+                            );
+                          })}
+                      </tr>
+
+                      {multiFlatMode &&
+                        [true].map(_ => {
+                          const missingValues = this.calculateMissingValues(
+                            headerData,
+                            headerKeys,
+                            stubEntry.id
+                          );
+                          if (
+                            j === stubEntry[stubKey].length - 1 &&
+                            missingValues.filter(value => value > 0).length > 0
+                          ) {
+                            return (
+                              <tr>
+                                <td></td>
+                                <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                                  Missing Values
+                                </th>
+                                {missingValues.map(missingValue => {
+                                  return (
+                                    <td>
+                                      {missingValue}
+                                      {this.props.settings.showPercentage &&
+                                        '%'}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          }
+
+                          return null;
+                        })}
+
+                      {multiLevelMode &&
+                        [true].map(_ => {
+                          if (j === stubEntry[stubKey].length - 1) {
+                            const missingValues = this.calculateMultiLevelMissingValue(
+                              headersSpanSize,
+                              sums
+                            );
+
+                            if (
+                              missingValues.filter(value => value > 0).length >
+                              0
+                            ) {
+                              return (
+                                <tr>
+                                  <td></td>
+                                  <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                                    Missing Values
+                                  </th>
+                                  {missingValues.map(missingValue => {
+                                    return (
+                                      <td>
+                                        {missingValue}
+                                        {this.props.settings.showPercentage &&
+                                          '%'}
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              );
+                            }
+                          }
+
+                          return null;
+                        })}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+              <tbody className="separator"></tbody>
+            </React.Fragment>
+          );
+        })}
       </table>
     );
   }

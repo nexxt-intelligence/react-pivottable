@@ -145,61 +145,29 @@ var DraggableAttribute = exports.DraggableAttribute = function (_React$Component
             '(too many values to show)'
           ),
           showMenu && _react2.default.createElement(
-            'p',
-            null,
-            _react2.default.createElement('input', {
-              type: 'text',
-              placeholder: 'Filter values',
-              className: 'pvtSearch',
-              value: this.state.filterText,
-              onChange: function onChange(e) {
-                return _this2.setState({
-                  filterText: e.target.value
-                });
-              }
-            }),
-            _react2.default.createElement('br', null),
-            _react2.default.createElement(
-              'a',
-              {
-                role: 'button',
-                className: 'pvtButton',
-                onClick: function onClick() {
-                  _this2.props.removeValuesFromFilter(_this2.props.name, options.filter(_this2.matchesFilter.bind(_this2)), _this2.props.type);
-                }
-              },
-              'Select ',
-              values.length === shown.length ? 'All' : shown.length
-            ),
-            ' ',
-            _react2.default.createElement(
-              'a',
-              {
-                role: 'button',
-                className: 'pvtButton',
-                onClick: function onClick() {
-                  return _this2.props.addValuesToFilter(_this2.props.name, options.filter(_this2.matchesFilter.bind(_this2)), _this2.props.type);
-                }
-              },
-              'Deselect ',
-              values.length === shown.length ? 'All' : shown.length
-            )
-          ),
-          showMenu && _react2.default.createElement(
             'div',
             { className: 'pvtCheckContainer' },
             shown.map(function (x) {
               var filterName = _this2.props.valueFilter[_this2.props.name];
               return _react2.default.createElement(
-                'p',
+                'div',
                 {
-                  key: x,
+                  className: 'pvtCheckWrapper',
                   onClick: function onClick() {
                     return _this2.toggleValue(x);
-                  },
-                  className: filterName && filterName[x.text] ? '' : 'selected'
+                  }
                 },
-                x.text === '' ? null : x.text
+                _react2.default.createElement(
+                  'label',
+                  { className: 'pvtCheckItem' },
+                  _react2.default.createElement('input', {
+                    type: 'checkbox',
+                    defaultChecked: true,
+                    checked: filterName && !filterName[x.text]
+                  }),
+                  _react2.default.createElement('span', { className: 'checkmark' }),
+                  x.text === '' ? null : x.text
+                )
               );
             })
           )
@@ -222,16 +190,13 @@ var DraggableAttribute = exports.DraggableAttribute = function (_React$Component
         _react2.default.createElement(
           'span',
           { className: 'pvtAttr ' + filtered },
+          _react2.default.createElement('span', { className: 'pvtHandle' }),
           this.props.name,
-          _react2.default.createElement(
-            'span',
-            {
-              className: 'pvtTriangle',
-              onClick: this.toggleFilterBox.bind(this)
-            },
-            ' ',
-            '\u25BE'
-          )
+          ' ',
+          _react2.default.createElement('span', {
+            className: 'pvtDots',
+            onClick: this.toggleFilterBox.bind(this)
+          })
         ),
         this.state.open ? this.getFilterBox() : null
       );
