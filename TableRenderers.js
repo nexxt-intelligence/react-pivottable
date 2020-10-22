@@ -540,7 +540,7 @@ var TableRenderer = function (_React$Component) {
                 return _react2.default.createElement(
                   'th',
                   {
-                    className: 'pvtColLabel',
+                    className: 'pvtColLabel title',
                     key: 'headerKeyTitle' + i,
                     colSpan: headerEntries.length
                   },
@@ -560,7 +560,10 @@ var TableRenderer = function (_React$Component) {
                 return headerEntries.map(function (headerEntry, i) {
                   return _react2.default.createElement(
                     'th',
-                    { className: 'pvtColLabel', key: 'headerKey' + i },
+                    {
+                      className: 'pvtColLabel subtitle',
+                      key: 'headerKey' + i
+                    },
                     headerEntry.text
                   );
                 });
@@ -569,10 +572,11 @@ var TableRenderer = function (_React$Component) {
           ),
           multiFlatMode && _react2.default.createElement(
             'tr',
-            null,
+            { className: 'base--mode' },
+            _react2.default.createElement('th', { className: 'row--handler' }),
             _react2.default.createElement(
               'th',
-              { colSpan: '2' },
+              { className: 'title' },
               'Base'
             ),
             headerKeys.map(function (headerAttr) {
@@ -591,145 +595,87 @@ var TableRenderer = function (_React$Component) {
             })
           )
         ),
-        _react2.default.createElement(
-          'tbody',
-          null,
-          multiLevelMode && _react2.default.createElement(
+        stubKeys.map(function (stubKey, i) {
+          var stubEntry = stubData.find(function (record) {
+            return record[stubKey] ? record : null;
+          });
+
+          var sums = {};
+
+          return _react2.default.createElement(
             _react2.default.Fragment,
             null,
-            headersRows.map(function (row) {
-              return _react2.default.createElement(
-                'tr',
-                null,
-                _react2.default.createElement(
-                  'th',
-                  { colSpan: '2' },
-                  row.title
-                ),
-                row.html
-              );
-            }),
             _react2.default.createElement(
-              'tr',
+              'tbody',
               null,
-              _react2.default.createElement(
-                'th',
-                { className: 'pvtRowLabel', colSpan: '2' },
-                'Base'
-              ),
-              headersRows.length > 0 && [].concat(_toConsumableArray(Array(headersRows[headerLastRowIndex].length))).map(function (element, index) {
-                return _react2.default.createElement(
-                  'th',
-                  {
-                    className: 'pvtColLabel',
-                    key: 'headerKey' + index,
-                    colSpan: '1'
-                  },
-                  _this4.getMultiLevelHeaderBase(index, headersSpanSize)
-                );
-              })
-            )
-          ),
-          stubKeys.map(function (stubKey, i) {
-            var stubEntry = stubData.find(function (record) {
-              return record[stubKey] ? record : null;
-            });
+              stubEntry[stubKey].map(function (stubOption, j) {
+                var showStubLabel = true;
 
-            var sums = {};
-
-            return stubEntry[stubKey].map(function (stubOption, j) {
-              var showStubLabel = true;
-
-              if (headerKeys.length > 0) if (j === 0) {
-                headerKeys.map(function (headerAttr) {
-                  var headerOptions = headerData.find(function (record) {
-                    return record[headerAttr] ? record : null;
-                  });
-
-                  if (headerOptions[headerAttr]) {
-                    headerOptions[headerAttr].forEach(function (headerOption) {
-                      if (headerOption.stubScores) {
-                        var objs = Object.values(headerOption.stubScores[headerAttr]);
-
-                        if (objs.length > 0) {
-                          headerOption.stubScores[headerAttr] = {};
-                        }
-                      }
-                    });
-                  }
-                });
-              }
-
-              if (currKey !== stubKey) {
-                currKey = stubKey;
-              } else {
-                showStubLabel = false;
-              }
-
-              var qLabelRowSpan = stubEntry[stubKey].length;
-
-              return _react2.default.createElement(
-                _react2.default.Fragment,
-                null,
-                _react2.default.createElement(
-                  'tr',
-                  { key: 'stubKeyRow' + i },
-                  showStubLabel && _react2.default.createElement(
-                    'th',
-                    {
-                      key: 'stubKeyLabel2' + i + '-' + j,
-                      rowSpan: qLabelRowSpan
-                    },
-                    stubKey
-                  ),
-                  _react2.default.createElement(
-                    'th',
-                    { key: 'stubKeyLabel' + i + '-' + j, className: 'pvtRowLabel' },
-                    stubOption.text
-                  ),
-                  multiFlatMode && headerKeys.map(function (headerAttr) {
-                    var headerEntry = headerData.find(function (record) {
+                if (headerKeys.length > 0) if (j === 0) {
+                  headerKeys.map(function (headerAttr) {
+                    var headerOptions = headerData.find(function (record) {
                       return record[headerAttr] ? record : null;
                     });
 
-                    return _this4.calculateCell(stubOption, stubEntry.id, headerEntry, headerAttr);
-                  }),
-                  multiLevelMode && headersRows.length > 0 && [].concat(_toConsumableArray(Array(headersRows[headerLastRowIndex].length))).map(function (_, index) {
-                    return _this4.calculateMultiLevelCell(stubOption, stubEntry.id, index, headersSpanSize, sums);
-                  })
-                ),
-                multiFlatMode && [true].map(function (_) {
-                  var missingValues = _this4.calculateMissingValues(headerData, headerKeys, stubEntry.id);
-                  if (j === stubEntry[stubKey].length - 1 && missingValues.filter(function (value) {
-                    return value > 0;
-                  }).length > 0) {
-                    return _react2.default.createElement(
-                      'tr',
-                      null,
-                      _react2.default.createElement('td', null),
-                      _react2.default.createElement(
-                        'th',
-                        { key: 'stubKeyLabel2' + i + '-' + j + '-' + j },
-                        'Missing Values'
-                      ),
-                      missingValues.map(function (missingValue) {
-                        return _react2.default.createElement(
-                          'td',
-                          null,
-                          missingValue,
-                          _this4.props.settings.showPercentage && '%'
-                        );
-                      })
-                    );
-                  }
+                    if (headerOptions[headerAttr]) {
+                      headerOptions[headerAttr].forEach(function (headerOption) {
+                        if (headerOption.stubScores) {
+                          var objs = Object.values(headerOption.stubScores[headerAttr]);
 
-                  return null;
-                }),
-                multiLevelMode && [true].map(function (_) {
-                  if (j === stubEntry[stubKey].length - 1) {
-                    var missingValues = _this4.calculateMultiLevelMissingValue(headersSpanSize, sums);
+                          if (objs.length > 0) {
+                            headerOption.stubScores[headerAttr] = {};
+                          }
+                        }
+                      });
+                    }
+                  });
+                }
 
-                    if (missingValues.filter(function (value) {
+                if (currKey !== stubKey) {
+                  currKey = stubKey;
+                } else {
+                  showStubLabel = false;
+                }
+
+                return _react2.default.createElement(
+                  _react2.default.Fragment,
+                  null,
+                  !j && _react2.default.createElement(
+                    'tr',
+                    null,
+                    _react2.default.createElement('th', { className: 'row--handler' }),
+                    _react2.default.createElement(
+                      'th',
+                      { className: 'title' },
+                      stubKey
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'tr',
+                    { key: 'stubKeyRow' + i },
+                    _react2.default.createElement('th', null),
+                    _react2.default.createElement(
+                      'th',
+                      {
+                        key: 'stubKeyLabel' + i + '-' + j,
+                        className: 'pvtRowLabel subtitle'
+                      },
+                      stubOption.text
+                    ),
+                    multiFlatMode && headerKeys.map(function (headerAttr) {
+                      var headerEntry = headerData.find(function (record) {
+                        return record[headerAttr] ? record : null;
+                      });
+
+                      return _this4.calculateCell(stubOption, stubEntry.id, headerEntry, headerAttr);
+                    }),
+                    multiLevelMode && headersRows.length > 0 && [].concat(_toConsumableArray(Array(headersRows[headerLastRowIndex].length))).map(function (_, index) {
+                      return _this4.calculateMultiLevelCell(stubOption, stubEntry.id, index, headersSpanSize, sums);
+                    })
+                  ),
+                  multiFlatMode && [true].map(function (_) {
+                    var missingValues = _this4.calculateMissingValues(headerData, headerKeys, stubEntry.id);
+                    if (j === stubEntry[stubKey].length - 1 && missingValues.filter(function (value) {
                       return value > 0;
                     }).length > 0) {
                       return _react2.default.createElement(
@@ -751,14 +697,45 @@ var TableRenderer = function (_React$Component) {
                         })
                       );
                     }
-                  }
 
-                  return null;
-                })
-              );
-            });
-          })
-        )
+                    return null;
+                  }),
+                  multiLevelMode && [true].map(function (_) {
+                    if (j === stubEntry[stubKey].length - 1) {
+                      var missingValues = _this4.calculateMultiLevelMissingValue(headersSpanSize, sums);
+
+                      if (missingValues.filter(function (value) {
+                        return value > 0;
+                      }).length > 0) {
+                        return _react2.default.createElement(
+                          'tr',
+                          null,
+                          _react2.default.createElement('td', null),
+                          _react2.default.createElement(
+                            'th',
+                            { key: 'stubKeyLabel2' + i + '-' + j + '-' + j },
+                            'Missing Values'
+                          ),
+                          missingValues.map(function (missingValue) {
+                            return _react2.default.createElement(
+                              'td',
+                              null,
+                              missingValue,
+                              _this4.props.settings.showPercentage && '%'
+                            );
+                          })
+                        );
+                      }
+                    }
+
+                    return null;
+                  })
+                );
+              })
+            ),
+            _react2.default.createElement('tbody', { className: 'separator' })
+          );
+        })
       );
     }
   }]);
