@@ -1,41 +1,39 @@
 var webpack = require('webpack');
+var path = require('path');
 
 module.exports = {
-  entry: [
-    'babel-polyfill',
-    'react-hot-loader/patch',
-    './examples/index.jsx'
-  ],
+  entry: ['babel-polyfill', 'react-hot-loader/patch', './examples/index.jsx'],
   output: {
-    filename: 'bundle.js'
+    path: path.join(__dirname, './examples'),
+    filename: 'bundle.js',
   },
-  module : {
+  module: {
     rules: [
       {
         test: /\.jsx?$/,
         use: {
           loader: 'babel-loader',
           options: {
-            "presets" : [["env", {"modules": false}], "react"],
-            "plugins": ["react-hot-loader/babel"]
-          }
+            presets: [['env', {modules: false}], 'react'],
+            plugins: ['react-hot-loader/babel'],
+          },
         },
         exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: [ 'style-loader', 'css-loader' ]
-      }
-    ]
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
   },
   plugins: [
     new webpack.NamedModulesPlugin(),
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
   ],
   devServer: {
-      contentBase: './examples',
-      hot: true
-    },
+    contentBase: './examples',
+    hot: true,
+  },
   resolve: {
     extensions: ['.js', '.jsx'],
   },

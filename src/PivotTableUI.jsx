@@ -1,205 +1,19 @@
 import React from 'react';
+import Toggle from 'react-toggle';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {PivotData, sortAs, getSort} from './Utilities';
 import TableRenderers from './TableRenderers';
 import Sortable from 'react-sortablejs';
-import Draggable from 'react-draggable';
+import DraggableAttribute from './DraggableAttribute';
+import QuestionDropdown from './QuestionDropdown';
+import Slider from 'rc-slider';
 import OptionsMenu from './OptionsMenu';
+import 'rc-slider/assets/index.css';
+import 'react-toggle/style.css';
 
 /* eslint-disable react/prop-types */
 // eslint can't see inherited propTypes!
-
-export class DraggableAttribute extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      open: false,
-      filterText: '',
-    };
-  }
-
-  toggleValue(value) {
-    const filterProperty = this.props.valueFilter;
-    if (
-      this.props.name in filterProperty &&
-      value.text in filterProperty[this.props.name]
-    ) {
-      this.props.removeValuesFromFilter(
-        this.props.name,
-        [value],
-        this.props.type
-      );
-    } else {
-      this.props.addValuesToFilter(this.props.name, [value], this.props.type);
-    }
-  }
-
-  matchesFilter(x) {
-    return x.text
-      .toLowerCase()
-      .trim()
-      .includes(this.state.filterText.toLowerCase().trim());
-  }
-
-  selectOnly(e, value) {
-    e.stopPropagation();
-    const filterFieldName = `${this.props.type}ValueFilter`;
-    this.props.setValuesInFilter(
-      this.props.name,
-      Object.keys(this.props.attrValuesB).filter(y => y !== value),
-      filterFieldName
-    );
-  }
-
-  getFilterBox() {
-    const values = this.props.attrValuesB[this.props.name];
-    const showMenu = values.length < this.props.menuLimit;
-    const shown = values
-      .filter(this.matchesFilter.bind(this))
-      .sort(this.props.sorter);
-
-    const options = Object.values(this.props.attrValuesB)
-      .filter(property => Array.isArray(property))
-      .flatMap(property => property);
-
-    return (
-      <Draggable handle=".pvtDragHandle">
-        <div
-          className="pvtFilterBox"
-          style={{
-            display: 'block',
-            cursor: 'initial',
-            zIndex: this.props.zIndex,
-          }}
-          onClick={() => this.props.moveFilterBoxToTop(this.props.name)}
-        >
-          <a onClick={() => this.setState({open: false})} className="pvtCloseX">
-            ×
-          </a>
-          <span className="pvtDragHandle">☰</span>
-          <h4>{this.props.name}</h4>
-
-          {showMenu || <p>(too many values to show)</p>}
-
-          {showMenu && (
-            <div className="pvtCheckContainer">
-              {shown.map(x => {
-                const filterName = this.props.valueFilter[this.props.name];
-                return (
-                  <div
-                    className="pvtCheckWrapper"
-                    onClick={() => this.toggleValue(x)}
-                  >
-                    <label className="pvtCheckItem">
-                      <input
-                        type="checkbox"
-                        defaultChecked={true}
-                        checked={filterName && !filterName[x.text]}
-                      />
-                      <span className="checkmark"></span>
-                      {x.text === '' ? null : x.text}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </Draggable>
-    );
-  }
-
-  toggleFilterBox() {
-    this.setState({open: !this.state.open});
-    this.props.moveFilterBoxToTop(this.props.name);
-  }
-
-  render() {
-    const filtered =
-      Object.keys(this.props.valueFilter).length !== 0
-        ? 'pvtFilteredAttribute'
-        : '';
-    return (
-      <li data-id={this.props.name}>
-        <span className={'pvtAttr ' + filtered}>
-          <span className="pvtHandle"></span>
-          {this.props.name}{' '}
-          <span
-            className="pvtDots"
-            onClick={this.toggleFilterBox.bind(this)}
-          ></span>
-        </span>
-
-        {this.state.open ? this.getFilterBox() : null}
-      </li>
-    );
-  }
-}
-
-DraggableAttribute.defaultProps = {
-  valueFilter: {},
-};
-
-DraggableAttribute.propTypes = {
-  name: PropTypes.string.isRequired,
-  addValuesToFilter: PropTypes.func.isRequired,
-  removeValuesFromFilter: PropTypes.func.isRequired,
-  attrValuesB: PropTypes.object.isRequired,
-  valueFilter: PropTypes.objectOf(PropTypes.bool),
-  moveFilterBoxToTop: PropTypes.func.isRequired,
-  sorter: PropTypes.func.isRequired,
-  menuLimit: PropTypes.number,
-  zIndex: PropTypes.number,
-};
-
-export class Dropdown extends React.PureComponent {
-  render() {
-    return (
-      <div className="pvtDropdown" style={{zIndex: this.props.zIndex}}>
-        <div
-          onClick={e => {
-            e.stopPropagation();
-            this.props.toggle();
-          }}
-          className={
-            'pvtDropdownValue pvtDropdownCurrent ' +
-            (this.props.open ? 'pvtDropdownCurrentOpen' : '')
-          }
-          role="button"
-        >
-          <div className="pvtDropdownIcon">{this.props.open ? '×' : '▾'}</div>
-          {this.props.current || <span>&nbsp;</span>}
-        </div>
-
-        {this.props.open && (
-          <div className="pvtDropdownMenu">
-            {this.props.values.map(r => (
-              <div
-                key={r}
-                role="button"
-                onClick={e => {
-                  e.stopPropagation();
-                  if (this.props.current === r) {
-                    this.props.toggle();
-                  } else {
-                    this.props.setValue(r);
-                  }
-                }}
-                className={
-                  'pvtDropdownValue ' +
-                  (r === this.props.current ? 'pvtDropdownActiveValue' : '')
-                }
-              >
-                {r.text}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-}
 
 class PivotTableUI extends React.Component {
   constructor(props) {
@@ -216,9 +30,13 @@ class PivotTableUI extends React.Component {
         showPercentage: true,
         multiLevelMode: false,
       },
+      significanceTest: false,
+      significance: 80,
     };
 
     this.toggleTableOption = this.toggleTableOption.bind(this);
+    this.toggleSignificanceTest = this.toggleSignificanceTest.bind(this);
+    this.handleSignificanceChange = this.handleSignificanceChange.bind(this);
   }
 
   componentDidMount() {
@@ -341,7 +159,10 @@ class PivotTableUI extends React.Component {
   }
 
   propUpdater(key) {
-    return value => this.sendPropUpdate({[key]: {$set: value}});
+    return value => {
+      console.log(value);
+      return this.sendPropUpdate({[key]: {$set: value}});
+    };
   }
 
   setValuesInFilter(attribute, values, filterFieldName) {
@@ -394,6 +215,20 @@ class PivotTableUI extends React.Component {
     return this.state.openDropdown === dropdown;
   }
 
+  removeHeader(headerName) {
+    const newHeaders = this.props.headers;
+    console.log(`removing ${headerName}`);
+    const index = newHeaders.indexOf(headerName);
+
+    if (index > -1) {
+      newHeaders.splice(index, 1);
+    } else {
+      newHeaders.push(headerName);
+    }
+
+    this.sendPropUpdate({headers: {$set: newHeaders}});
+  }
+
   makeDnDCell(items, onChange, classes, type) {
     const filterType =
       type === 'stub'
@@ -405,7 +240,7 @@ class PivotTableUI extends React.Component {
         options={{
           group: 'shared',
           ghostClass: 'pvtPlaceholder',
-          filter: '.pvtFilterBox',
+          filter: '.excluded',
           preventOnFilter: false,
         }}
         tag="td"
@@ -432,10 +267,23 @@ class PivotTableUI extends React.Component {
             removeValuesFromFilter={this.removeValuesFromFilter.bind(this)}
             type={type}
             zIndex={this.state.zIndices[item] || this.state.maxZIndex}
+            removeHeader={() => this.removeHeader(item)}
           />
         ))}
       </Sortable>
     );
+  }
+
+  toggleSignificanceTest() {
+    this.setState(prevState => ({
+      significanceTest: !prevState.significanceTest,
+    }));
+  }
+
+  handleSignificanceChange(value) {
+    this.setState({
+      significance: value,
+    });
   }
 
   render() {
@@ -447,23 +295,6 @@ class PivotTableUI extends React.Component {
           options={this.state.tableOptions}
         />
       </td>
-    );
-
-    const unusedAttrs = Object.keys(this.state.attrValuesB)
-      .filter(
-        e =>
-          !this.props.headers.includes(e) &&
-          !this.props.hiddenAttributes.includes(e) &&
-          !this.props.hiddenFromDragDrop.includes(e) &&
-          e !== 'id'
-      )
-      .sort(sortAs(this.state.unusedOrder));
-
-    const unusedAttrsCell = this.makeDnDCell(
-      unusedAttrs,
-      order => this.setState({unusedOrder: order}),
-      `pvtAxisContainer pvtUnused ${'pvtHorizList'}`,
-      'header'
     );
 
     const headerAttrs = this.props.headers.filter(
@@ -496,18 +327,65 @@ class PivotTableUI extends React.Component {
         {...this.props}
         settings={this.state.tableOptions}
         multiLevelMode={this.state.tableOptions.multiLevelMode}
+        significance={this.state.significance}
       />
     );
 
+    const sigDisabled = !this.state.significanceTest;
+    const sliderPrimaryColor = sigDisabled ? '#4D4D4D' : '#5AB82D';
+
     return (
       <table className="pvtUi">
-        <tbody onClick={() => this.setState({openDropdown: false})}>
-          <tr>
-            {rendererCell}
-            {unusedAttrsCell}
+        <tbody
+          className="pvtUi-body-wrapper"
+          onClick={() => this.setState({openDropdown: false})}
+        >
+          <tr className="header-row">
+            {headerAttrsCell}
+            <div className="pvtCols-ext">
+              <QuestionDropdown
+                name={'Add Question'}
+                questions={this.props.stubs}
+                updateHeaders={newHeaders => {
+                  this.sendPropUpdate({headers: {$set: newHeaders}});
+                }}
+              />
+            </div>{' '}
+            <div className="sig-settings">
+              <label>
+                <Toggle
+                  defaultChecked={this.state.significanceTest}
+                  icons={false}
+                  onChange={this.toggleSignificanceTest}
+                />
+                <span>
+                  Highlight Significant Differences at Confidence Level of
+                </span>
+              </label>
+              <Slider
+                disabled={sigDisabled}
+                onChange={this.handleSignificanceChange}
+                value={this.state.significance}
+                min={80}
+                max={100}
+                step={5}
+                marks={{80: '80%', 85: '85%', 90: '90%', 95: '95%', 100: '99%'}}
+                railStyle={{
+                  backgroundColor: '#CDCDCD',
+                }}
+                trackStyle={{
+                  backgroundColor: sliderPrimaryColor,
+                }}
+                dotStyle={{display: 'none'}}
+                handleStyle={{
+                  borderColor: sliderPrimaryColor,
+                  borderWidth: '3px',
+                  boxShadow: 'none',
+                }}
+              />
+            </div>
           </tr>
-          <tr>{headerAttrsCell}</tr>
-          <tr>
+          <tr className="table-data">
             {stubAttrsCell}
             {outputCells}
           </tr>

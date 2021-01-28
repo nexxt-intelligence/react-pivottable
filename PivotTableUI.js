@@ -13,6 +13,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _reactToggle = require('react-toggle');
+
+var _reactToggle2 = _interopRequireDefault(_reactToggle);
+
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
@@ -38,6 +42,8 @@ var _reactDraggable2 = _interopRequireDefault(_reactDraggable);
 var _OptionsMenu = require('./OptionsMenu');
 
 var _OptionsMenu2 = _interopRequireDefault(_OptionsMenu);
+
+require('react-toggle/style.css');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -309,7 +315,9 @@ var PivotTableUI = function (_React$Component2) {
       tableOptions: {
         showPercentage: true,
         multiLevelMode: false
-      }
+      },
+      significanceTest: false,
+      significance: 50
     };
 
     _this5.toggleTableOption = _this5.toggleTableOption.bind(_this5);
@@ -569,6 +577,15 @@ var PivotTableUI = function (_React$Component2) {
       );
     }
   }, {
+    key: 'toggleSignificanceTest',
+    value: function toggleSignificanceTest() {
+      this.setState(function (prevState) {
+        return {
+          significanceTest: !prevState.significanceTest
+        };
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this8 = this;
@@ -604,7 +621,8 @@ var PivotTableUI = function (_React$Component2) {
 
       var outputCells = _react2.default.createElement(_TableRenderers2.default, _extends({}, this.props, {
         settings: this.state.tableOptions,
-        multiLevelMode: this.state.tableOptions.multiLevelMode
+        multiLevelMode: this.state.tableOptions.multiLevelMode,
+        significance: this.state.significance
       }));
 
       return _react2.default.createElement(
@@ -624,7 +642,26 @@ var PivotTableUI = function (_React$Component2) {
           _react2.default.createElement(
             'tr',
             null,
-            headerAttrsCell
+            headerAttrsCell,
+            ' ',
+            _react2.default.createElement(
+              'div',
+              { className: 'sig-settings' },
+              _react2.default.createElement(
+                'label',
+                { className: 'toggle' },
+                _react2.default.createElement(_reactToggle2.default, {
+                  defaultChecked: this.state.significanceTest,
+                  icons: false,
+                  onChange: this.toggleSignificanceTest
+                }),
+                _react2.default.createElement(
+                  'span',
+                  null,
+                  'Highlight Significant Differences at Confidence Level of'
+                )
+              )
+            )
           ),
           _react2.default.createElement(
             'tr',

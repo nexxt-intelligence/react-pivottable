@@ -3,6 +3,8 @@
   font-family: Verdana;
   border-collapse: separate;
   border-spacing: 0 5px;
+  display: block;
+  overflow: auto;
 }
 .pvtUi select {
   user-select: none;
@@ -14,6 +16,10 @@
 
 .pvtUi td.pvtOutput {
   vertical-align: top;
+}
+
+.pvtUi-body-wrapper {
+  display: inherit;
 }
 
 table.pvtTable {
@@ -31,6 +37,7 @@ table.pvtTable {
 table.pvtTable tbody {
   box-shadow: 4px 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 3px;
+  width: 100%;
 }
 
 table.pvtTable tbody.separator {
@@ -117,6 +124,12 @@ table.pvtTable tbody tr td {
   text-align: center;
 }
 
+.table-data {
+  overflow: auto;
+  width: 100%;
+  display: inherit;
+}
+
 .pvtTotal,
 .pvtGrandTotal {
   font-weight: bold;
@@ -147,6 +160,7 @@ table.pvtTable tbody tr td {
   background-color: #ededed;
   border-radius: 3px;
   text-transform: capitalize;
+  width: 100%;
 }
 
 .pvtRenderers {
@@ -217,9 +231,14 @@ table.pvtTable tbody tr td {
 
 .pvtCols {
   background-color: #d8e4f8;
-  border-radius: 3px;
-  height: 50px;
+  border-radius: 3px 0 0 3px;
   text-transform: capitalize;
+  min-height: 68px;
+  width: 70%;
+  display: flex;
+  flex-wrap: wrap;
+
+  transition: flex 0.3s ease-out;
 }
 
 .pvtAxisContainer li {
@@ -336,7 +355,9 @@ table.pvtTable tbody tr td {
 .pvtFilterBox {
   z-index: 100;
   width: 300px;
-  border: 1px solid #506784;
+  border-radius: 3px;
+  -webkit-box-shadow: 0px 3px 18px -2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 3px 18px -2px rgba(0, 0, 0, 0.15);
   background-color: #fff;
   position: absolute;
   text-align: center;
@@ -376,6 +397,7 @@ table.pvtTable tbody tr td {
 
 .pvtCheckContainer .pvtCheckWrapper {
   cursor: pointer;
+  transition: background-color 300ms linear;
 }
 
 .pvtCheckContainer .pvtCheckItem {
@@ -399,7 +421,8 @@ table.pvtTable tbody tr td {
   left: 10px;
   height: 15px;
   width: 15px;
-  background-color: #eee;
+  background-color: #fff;
+  border: 1px solid #757575;
   border-radius: 50%;
 }
 
@@ -463,8 +486,8 @@ table.pvtTable tbody tr td {
   font-weight: bold;
 }
 
-.pvtDots:after {
-  content: '\22EF';
+.pvtDots:after,
+.pvtPlus:after {
   cursor: pointer;
   vertical-align: text-bottom;
   margin-left: 10px;
@@ -472,8 +495,104 @@ table.pvtTable tbody tr td {
   font-weight: bold;
 }
 
+.pvtDots:after {
+  content: '\22EF';
+}
+
+.pvtPlus:after {
+  content: '+';
+  font-weight: normal;
+}
+
 .cell-placeholder {
   font-size: 1.25rem;
   color: gray;
   text-align: center;
+}
+
+.sig-settings {
+  display: flex;
+  flex-direction: column;
+  margin: 0 3rem;
+  width: 30%;
+}
+
+.sig-settings label {
+  display: flex;
+  text-align: end;
+  font-size: 12px;
+}
+
+.header-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 3rem;
+}
+
+.pvtCols-ext {
+  background-color: #d8e4f8;
+  border-radius: 0 3px 3px 0;
+  text-transform: capitalize;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5px;
+  width: 20%;
+}
+
+.question-dropdown {
+  border-radius: 3px;
+  width: 300px;
+  background-color: #fff;
+  position: absolute;
+  text-align: center;
+  user-select: none;
+  min-height: 100px;
+  z-index: 15700;
+  -webkit-box-shadow: 0px 3px 18px -2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 3px 18px -2px rgba(0, 0, 0, 0.15);
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
+}
+
+.question-dropdown-btn {
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 14px;
+  color: #bebebe;
+  background-color: #fff;
+  border: 1px solid #ffffff;
+  border-radius: 3px;
+  padding: 6px 10px;
+  margin: 5px;
+  width: 95%;
+  min-height: 48px;
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
+}
+.question-dropdown-wrapper {
+  z-index: 9999;
+}
+
+.selected {
+  background-color: #daf3e9;
+  transition: background-color 300ms linear;
+}
+
+.header-rm-button {
+  color: #e57e7e !important;
+  background-color: transparent;
+  border: none;
+  margin: 0.5rem;
+  font-size: 12px;
 }
