@@ -188,6 +188,47 @@ class TableRenderer extends React.Component {
     return missingValues ? missingValues : [];
   }
 
+  calculateTotal(stubOption, stubId) {
+    const {userResponses, settings} = this.props;
+    const {showPercentage} = settings;
+    const baseTotal = userResponses.length;
+    let stubTotal = 0;
+
+    userResponses.forEach(response => {
+      if (response[stubId] === stubOption.value) {
+        stubTotal++;
+      }
+    });
+
+    const formattedTotal = showPercentage
+      ? `${Math.round((stubTotal / baseTotal) * 100)}%`
+      : stubTotal;
+
+    return formattedTotal;
+  }
+
+  calculateTotalMissing(stubEntry, stubKey) {
+    const {userResponses, settings} = this.props;
+    const {showPercentage} = settings;
+    const baseTotal = userResponses.length;
+    let totalAnswers = 0;
+
+    stubEntry[stubKey].forEach(stubOption => {
+      userResponses.forEach(response => {
+        if (response[stubEntry.id] === stubOption.value) {
+          totalAnswers++;
+        }
+      });
+    });
+
+    const missingTotal = baseTotal - totalAnswers;
+    const formattedTotal = showPercentage
+      ? `${Math.round((missingTotal / baseTotal) * 100)}%`
+      : missingTotal;
+
+    return formattedTotal;
+  }
+
   getMultiLevelHeaderBase(index, finalRowLength) {
     const {userResponses} = this.props;
     const rows = [...this.state.headersRows];
@@ -394,6 +435,8 @@ class TableRenderer extends React.Component {
   render() {
     const pivotData = new PivotData(this.props);
 
+    const {showPercentage} = this.props.settings;
+
     const stubFilters = pivotData.props.stubValueFilter;
     const headerFilters = pivotData.props.headerValueFilter;
 
@@ -450,7 +493,7 @@ class TableRenderer extends React.Component {
           {multiFlatMode && (
             <React.Fragment>
               <tr>
-                <td colSpan="2"></td>
+                <td colSpan="3"></td>
                 {headerKeys.map((headerKey, i) => {
                   const headerEntries = headerData.find(record =>
                     record[headerKey] ? record : null
@@ -469,10 +512,11 @@ class TableRenderer extends React.Component {
               </tr>
               <tr>
                 <td colSpan="2"></td>
-                {headerKeys.map(headerAttr => {
+                <th className="pvtColLabel subtitle">Total</th>
+                {headerKeys.map(headerKey => {
                   const headerEntries = headerData.find(record =>
-                    record[headerAttr] ? record : null
-                  )[headerAttr];
+                    record[headerKey] ? record : null
+                  )[headerKey];
 
                   return headerEntries.map((headerEntry, i) => {
                     return (
@@ -493,11 +537,14 @@ class TableRenderer extends React.Component {
             <tr className="base--mode">
               <th className="row--handler"></th>
               <th className="title">Base</th>
-              {headerKeys.map(headerAttr => {
+              <th>
+                {showPercentage ? '100%' : this.props.userResponses.length}
+              </th>
+              {headerKeys.map(headerKey => {
                 const headerFullEntry = headerData.find(record =>
-                  record[headerAttr] ? record : null
+                  record[headerKey] ? record : null
                 );
-                const headerOptions = headerFullEntry[headerAttr];
+                const headerOptions = headerFullEntry[headerKey];
 
                 return headerOptions.map((headerOption, i) => {
                   return (
@@ -554,7 +601,7 @@ class TableRenderer extends React.Component {
                 {stubEntry[stubKey].map((stubOption, j) => {
                   let showStubLabel = true;
 
-                  if (headerKeys.length > 0)
+                  if (headerKeys.length > 0) {
                     if (j === 0) {
                       headerKeys.map(headerAttr => {
                         const headerOptions = headerData.find(record =>
@@ -576,6 +623,7 @@ class TableRenderer extends React.Component {
                         }
                       });
                     }
+                  }
 
                   if (currKey !== stubKey) {
                     currKey = stubKey;
@@ -600,6 +648,7 @@ class TableRenderer extends React.Component {
                         >
                           {stubOption.text}
                         </th>
+                        <th>{this.calculateTotal(stubOption, stubEntry.id)}</th>
 
                         {multiFlatMode &&
                           headerKeys.map(headerAttr => {
@@ -632,32 +681,42 @@ class TableRenderer extends React.Component {
 
                       {multiFlatMode &&
                         [true].map(_ => {
-                          const missingValues = this.calculateMissingValues(
-                            headerData,
-                            headerKeys,
-                            stubEntry.id
+                          const totalMissingLabel = this.calculateTotalMissing(
+                            stubEntry,
+                            stubKey
                           );
-                          if (
-                            j === stubEntry[stubKey].length - 1 &&
-                            missingValues.filter(value => value > 0).length > 0
-                          ) {
-                            return (
-                              <tr>
-                                <td></td>
-                                <th key={`stubKeyLabel2${i}-${j}-${j}`}>
-                                  Missing Values
-                                </th>
-                                {missingValues.map(missingValue => {
-                                  return (
-                                    <td>
-                                      {missingValue}
-                                      {this.props.settings.showPercentage &&
-                                        '%'}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
+
+                          const totalMissing = showPercentage
+                            ? Number(totalMissingLabel.split('%')[0])
+                            : Number(totalMissingLabel);
+
+                          if (totalMissing > 0) {
+                            const missingValues = this.calculateMissingValues(
+                              headerData,
+                              headerKeys,
+                              stubEntry.id
                             );
+
+                            if (j === stubEntry[stubKey].length - 1) {
+                              return (
+                                <tr>
+                                  <td></td>
+                                  <th key={`stubKeyLabel2${i}-${j}-${j}`}>
+                                    Missing Values
+                                  </th>
+                                  <th>{totalMissingLabel}</th>
+                                  {missingValues.map(missingValue => {
+                                    return (
+                                      <td>
+                                        {missingValue}
+                                        {this.props.settings.showPercentage &&
+                                          '%'}
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              );
+                            }
                           }
 
                           return null;
