@@ -535,7 +535,7 @@ class TableRenderer extends React.Component {
 
           {multiFlatMode && (
             <tr className="base--mode">
-              <th className="row--handler"></th>
+              <th></th>
               <th className="title">Base</th>
               <th>
                 {showPercentage ? '100%' : this.props.userResponses.length}
@@ -635,7 +635,7 @@ class TableRenderer extends React.Component {
                     <React.Fragment>
                       {!j && (
                         <tr>
-                          <th className="row--handler"></th>
+                          <th></th>
                           <th className="title">{stubKey}</th>
                         </tr>
                       )}
