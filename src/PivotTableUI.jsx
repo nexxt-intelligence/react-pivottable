@@ -160,7 +160,6 @@ class PivotTableUI extends React.Component {
 
   propUpdater(key) {
     return value => {
-      console.log(value);
       return this.sendPropUpdate({[key]: {$set: value}});
     };
   }
@@ -287,15 +286,8 @@ class PivotTableUI extends React.Component {
   }
 
   render() {
-    const rendererCell = (
-      <td className="settings-cell" rowSpan="2">
-        <OptionsMenu
-          moveFilterBoxToTop={this.moveFilterBoxToTop.bind(this)}
-          toggleValue={this.toggleTableOption}
-          options={this.state.tableOptions}
-        />
-      </td>
-    );
+    const sigDisabled = !this.state.significanceTest;
+    const sliderPrimaryColor = sigDisabled ? '#4D4D4D' : '#5AB82D';
 
     const headerAttrs = this.props.headers.filter(
       e =>
@@ -327,12 +319,10 @@ class PivotTableUI extends React.Component {
         {...this.props}
         settings={this.state.tableOptions}
         multiLevelMode={this.state.tableOptions.multiLevelMode}
-        significance={this.state.significance}
+        sigConfidence={this.state.significance}
+        showSignificance={!sigDisabled}
       />
     );
-
-    const sigDisabled = !this.state.significanceTest;
-    const sliderPrimaryColor = sigDisabled ? '#4D4D4D' : '#5AB82D';
 
     return (
       <table className="pvtUi">
@@ -387,7 +377,7 @@ class PivotTableUI extends React.Component {
           </tr>
           <tr className="table-data">
             {stubAttrsCell}
-            {outputCells}
+            {this.props.stubs.length > 0 && outputCells}
           </tr>
         </tbody>
       </table>

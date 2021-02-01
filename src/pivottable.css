@@ -596,3 +596,15 @@ table.pvtTable tbody tr td {
   margin: 0.5rem;
   font-size: 12px;
 }
+
+.sig-0 {
+  color: #757575 !important;
+}
+
+.sig-1 {
+  color: #e57e7e !important;
+}
+
+.sig-2 {
+  color: #5ab82d !important;
+}

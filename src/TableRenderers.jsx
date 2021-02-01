@@ -1,5 +1,14 @@
 import React from 'react';
+import axios from 'axios';
 import {PivotData} from './Utilities';
+
+const SIGNIFICANCE = {
+  NONE: 0,
+  LOWER: 1,
+  HIGHER: 2,
+};
+
+const MISSING_VALUE = -99;
 
 /* eslint-disable react/prop-types */
 class TableRenderer extends React.Component {
@@ -7,11 +16,25 @@ class TableRenderer extends React.Component {
     super(props);
     this.state = {
       headersRows: [],
+      sigStore: {},
     };
   }
 
+  componentDidMount() {
+    const sigStore = {};
+
+    this.props.stubs.forEach(stubKey => {
+      const stubEntry = this.props.data.find(record =>
+        record[stubKey] ? record : null
+      );
+      sigStore[stubEntry.id] = {};
+    });
+
+    this.setState({sigStore});
+  }
+
   calculateCell(stubEntry, stubId, headerEntry, headerAttr) {
-    const {userResponses, settings} = this.props;
+    const {userResponses, settings, showSignificance} = this.props;
     const {showPercentage} = settings;
 
     const headerOptionId = headerEntry.id;
@@ -47,12 +70,27 @@ class TableRenderer extends React.Component {
     });
 
     const cells = headerEntry[headerAttr].map(entry => {
+      const sigLevel = this.getSignificanceLevel(
+        stubId,
+        headerEntry.id,
+        stubEntry.value,
+        entry.value
+      );
+
       if (showPercentage) {
         const score = Math.round((entry.stubScore / entry.baseScore) * 100);
-        return <td>{`${score ? score : 0}%`}</td>;
+        return (
+          <td className={showSignificance && `sig-${sigLevel}`}>{`${
+            score ? score : 0
+          }%`}</td>
+        );
       }
 
-      return <td>{entry.stubScore}</td>;
+      return (
+        <td className={showSignificance && `sig-${sigLevel}`}>
+          {entry.stubScore}
+        </td>
+      );
     });
 
     return cells;
@@ -71,12 +109,21 @@ class TableRenderer extends React.Component {
         const missingRaw =
           entry.baseScore - entry.stubScores[headerAttr][stubId];
 
+        const sigLevel = this.getSignificanceLevel(
+          stubId,
+          headerEntry.id,
+          MISSING_VALUE,
+          entry.value
+        );
+
         if (showPercentage) {
           const missingValue = Math.round((missingRaw / entry.baseScore) * 100);
-          return missingValue ? missingValue : 0;
+          return missingValue
+            ? {value: missingValue, sigLevel}
+            : {value: 0, sigLevel};
         }
 
-        return missingRaw;
+        return {value: missingRaw, sigLevel};
       });
     });
 
@@ -339,26 +386,66 @@ class TableRenderer extends React.Component {
     );
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.data !== this.props.data ||
-      (this.props.multiLevelMode !== prevProps.multiLevelMode &&
-        !this.props.multiLevelMode)
-    ) {
-      this.setState({
-        headersRows: [],
+  async componentDidUpdate(prevProps, prevState) {
+    // if (
+    //   prevProps.data !== this.props.data ||
+    //   (this.props.multiLevelMode !== prevProps.multiLevelMode &&
+    //     !this.props.multiLevelMode)
+    // ) {
+    //   this.setState({
+    //     headersRows: [],
+    //   });
+    // } else if (
+    //   this.props.multiLevelMode !== prevProps.multiLevelMode &&
+    //   this.props.multiLevelMode
+    // ) {
+    //   this.refreshHeaders();
+    //   return;
+    // }
+
+    const recalculateSignificance =
+      prevProps.sigConfidence !== this.props.sigConfidence;
+
+    if (this.props.headers.length > 0 || recalculateSignificance) {
+      const {sigStore} = this.state;
+      const promises = [];
+      this.props.stubs.forEach(stubKey => {
+        const stubEntry = this.props.data.find(record =>
+          record[stubKey] ? record : null
+        );
+
+        const sigMatricesForStub = sigStore[stubEntry.id];
+        this.props.headers.forEach(headerKey => {
+          const headerEntry = this.props.data.find(record =>
+            record[headerKey] ? record : null
+          );
+
+          if (!sigMatricesForStub[headerEntry.id] || recalculateSignificance) {
+            promises.push(this.calculateSignificance(headerEntry, stubEntry));
+          }
+        });
       });
-    } else if (
-      this.props.multiLevelMode !== prevProps.multiLevelMode &&
-      this.props.multiLevelMode
-    ) {
-      this.refreshHeaders();
-      return;
+
+      const sigResponses = await Promise.all(promises);
+      const sigStorage = this.state.sigStore;
+
+      sigResponses.forEach(sigResponse => {
+        const {sigMatrix, stubUniqueValues, headerUniqueValues} = sigResponse;
+        sigStorage[sigResponse.stubId][sigResponse.headerId] = {};
+        sigStorage[sigResponse.stubId][sigResponse.headerId].metadata = {
+          stubUniqueValues,
+          headerUniqueValues,
+        };
+        sigStorage[sigResponse.stubId][sigResponse.headerId].matrix = sigMatrix;
+      });
+
+      if (sigResponses.length > 0) {
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({sigStore: sigStorage});
+      }
     }
 
     if (prevProps.headers !== this.props.headers) {
-      let it = 0;
-
       const rows = [...this.state.headersRows];
       const headerKeys = this.props.headers;
       const headerData = this.props.data;
@@ -432,8 +519,100 @@ class TableRenderer extends React.Component {
     }
   }
 
+  async calculateSignificance(headerEntry, stubEntry) {
+    const {userResponses, sigConfidence} = this.props;
+
+    let stub = userResponses.map(response =>
+      response[stubEntry.id] ? Number(response[stubEntry.id]) : MISSING_VALUE
+    );
+
+    const header = userResponses
+      .map(response =>
+        response[headerEntry.id]
+          ? Number(response[headerEntry.id])
+          : MISSING_VALUE
+      )
+      .filter((response, i) => {
+        if (response === MISSING_VALUE) {
+          delete stub[i];
+        }
+
+        return response !== MISSING_VALUE;
+      });
+
+    stub = stub.filter(response => response);
+
+    let confidence = sigConfidence / 100;
+
+    if (sigConfidence === 100) {
+      confidence = sigConfidence - 1;
+    }
+
+    const reqBody = {
+      header,
+      stub,
+      confidence,
+    };
+
+    return await axios
+      .post(`${process.env.NLP_API_URL}/utils/sigtest`, reqBody)
+      .then(res => {
+        const headerUniqueValues = [...new Set(header)].sort((a, b) => a - b);
+        const stubUniqueValues = [...new Set(stub)].sort((a, b) => a - b);
+        const {sigMatrix, tailMatrix} = res.data;
+        const formattedSigMatrix = [];
+
+        sigMatrix.forEach((sigs, i) => {
+          formattedSigMatrix[i] = [];
+          sigs.forEach((_, j) => {
+            if (sigMatrix[i][j] && tailMatrix[i][j]) {
+              formattedSigMatrix[i][j] = SIGNIFICANCE.HIGHER;
+            } else if (sigMatrix[i][j] && !tailMatrix[i][j]) {
+              formattedSigMatrix[i][j] = SIGNIFICANCE.LOWER;
+            } else {
+              formattedSigMatrix[i][j] = SIGNIFICANCE.NONE;
+            }
+          });
+        });
+
+        return Object.assign(
+          {},
+          {
+            sigMatrix: formattedSigMatrix,
+            stubId: stubEntry.id,
+            headerId: headerEntry.id,
+            headerUniqueValues,
+            stubUniqueValues,
+          }
+        );
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+
+  getSignificanceLevel(stubId, headerId, stubValue, headerValue) {
+    let sigLevel = SIGNIFICANCE.NONE;
+
+    if (this.state.sigStore[stubId][headerId]) {
+      const {matrix, metadata} = this.state.sigStore[stubId][headerId];
+      const {stubUniqueValues, headerUniqueValues} = metadata;
+
+      const stubSigIndex = stubUniqueValues.indexOf(Number(stubValue));
+      const headerSigIndex = headerUniqueValues.indexOf(Number(headerValue));
+
+      if (headerSigIndex > -1 && stubSigIndex > -1) {
+        sigLevel = matrix[stubSigIndex][headerSigIndex];
+      }
+    }
+
+    return sigLevel;
+  }
+
   render() {
     const pivotData = new PivotData(this.props);
+
+    const {showSignificance} = this.props;
 
     const {showPercentage} = this.props.settings;
 
@@ -651,16 +830,16 @@ class TableRenderer extends React.Component {
                         <th>{this.calculateTotal(stubOption, stubEntry.id)}</th>
 
                         {multiFlatMode &&
-                          headerKeys.map(headerAttr => {
+                          headerKeys.map(headerKey => {
                             const headerEntry = headerData.find(record =>
-                              record[headerAttr] ? record : null
+                              record[headerKey] ? record : null
                             );
 
                             return this.calculateCell(
                               stubOption,
                               stubEntry.id,
                               headerEntry,
-                              headerAttr
+                              headerKey
                             );
                           })}
 
@@ -691,7 +870,7 @@ class TableRenderer extends React.Component {
                             : Number(totalMissingLabel);
 
                           if (totalMissing > 0) {
-                            const missingValues = this.calculateMissingValues(
+                            const missingData = this.calculateMissingValues(
                               headerData,
                               headerKeys,
                               stubEntry.id
@@ -705,10 +884,15 @@ class TableRenderer extends React.Component {
                                     Missing Values
                                   </th>
                                   <th>{totalMissingLabel}</th>
-                                  {missingValues.map(missingValue => {
+                                  {missingData.map(missing => {
                                     return (
-                                      <td>
-                                        {missingValue}
+                                      <td
+                                        className={
+                                          showSignificance &&
+                                          `sig-${missing.sigLevel}`
+                                        }
+                                      >
+                                        {missing.value}
                                         {this.props.settings.showPercentage &&
                                           '%'}
                                       </td>
